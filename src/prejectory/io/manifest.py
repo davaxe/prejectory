@@ -40,7 +40,7 @@ class DatasetManifest:
     """
 
     dataset: str
-    """Name of the DatasetSource dataset, e.g. 'lyft' or 'waymo'."""
+    """Name of the DatasetSource dataset, e.g. 'nuscenes' or 'waymo'."""
     storage_backend: str
     """Storage backend used to write the exported scene records."""
     prejectory_version: str

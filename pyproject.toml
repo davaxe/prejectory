@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "prejectory"
-version = "0.1.0.dev0"
+version = "0.0.0"
 description = "Trajectory data processing toolkit for autonomous driving datasets"
 authors = [
     { name = "Theodor Westny", email = "theodor.westny@liu.se" },
@@ -49,7 +49,6 @@ prejectory = "prejectory.__main__:main"
 
 [project.optional-dependencies]
 # viz = ["prejectory-viz"]
-lyft = ["zarr<3", "numcodecs<=0.13.1", "protobuf>=4.25.8"]
 waymo = ["protobuf>=4.25.8"]
 ad4che = ["opencv-python"]
 mds = ["mosaicml-streaming>=0.13.0"]

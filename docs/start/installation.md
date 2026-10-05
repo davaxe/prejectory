@@ -50,7 +50,6 @@ pip install "prejectory[cli,mds,torch,pyg]"
 | `pyg` | PyTorch Geometric adapters such as [`HeteroSceneDataset`](../reference/api/io/adapters.md#prejectory.io.adapters.HeteroSceneDataset) |
 | `viz` | Reserved placeholder extra for future visualization support. It currently adds no dependencies. |
 | `waymo` | Optional dependencies for the Waymo dataset |
-| `lyft` | Optional dependencies for the Lyft dataset |
 | `ad4che` | Optional dependencies for the AD4CHE dataset |
 
 ## Recommended installs
@@ -79,7 +78,6 @@ Most built-in datasets are available with the base install. Some datasets requir
 | Dataset | Required extra |
 | --- | --- |
 | `waymo` | `waymo` |
-| `lyft` | `lyft` |
 | `ad4che` | `ad4che` |
 
 The dataset registry only exposes datasets whose dependencies are installed. As a result, `prejectory available` reflects the datasets supported by your current environment.

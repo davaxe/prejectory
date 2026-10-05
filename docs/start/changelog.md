@@ -2,6 +2,8 @@
 
 ## Unreleased — Python API simplification
 
+- Remove the Lyft Level 5 integration and its optional dependencies because the dataset is no
+  longer publicly available.
 - Add `prejectory.plan`, `run`, and manifest-aware `open_dataset`.
 - Replace request `config_path` with `config` (TOML path or `ProjectConfig`). Replace
   `RuntimeOverride` with `DatasetConfigPatch`; CLI flag conversion is internal.
