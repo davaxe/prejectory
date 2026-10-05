@@ -606,7 +606,7 @@ def test_failed_writer_is_not_counted_as_written(
 ) -> None:
     _patch_get_demo_descriptor(monkeypatch)
     plan = resolve_request(_request(tmp_path))
-    writer_provider = WorkerWriterProvider(_create_failing_writer)
+    writer_provider = WorkerWriterProvider(_create_failing_writer)  # pyright: ignore[reportArgumentType]
 
     with open_executor(plan) as executor:
         with pytest.raises(RuntimeError, match="intentional writer failure"):

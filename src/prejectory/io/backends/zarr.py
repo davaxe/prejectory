@@ -17,6 +17,7 @@ from prejectory.io.encoding import encode_scene_record
 try:
     import zarr
     from zarr.codecs import ZstdCodec
+    from zarr.core.metadata import ArrayV2Metadata, ArrayV3Metadata
 except ModuleNotFoundError as error:
     raise_missing_optional_dependency(error, feature="The Zarr scene writer", extra="zarr")
 
@@ -70,7 +71,7 @@ _SCENE_INDEX_COLUMNS = (
 _MAX_BUFFERED_SCENES = 256
 _MAX_BUFFERED_BYTES = 64 * 1024 * 1024
 
-ZarrArray: TypeAlias = zarr.Array
+ZarrArray: TypeAlias = zarr.Array[ArrayV2Metadata] | zarr.Array[ArrayV3Metadata]
 Compressors: TypeAlias = tuple[ZstdCodec, ...] | None
 
 
@@ -134,7 +135,7 @@ class ZarrDatasetWriter(DatasetWriter):
     def flush_local(self) -> None:
         """Persist buffered records without closing the worker's shards."""
         for shard in self._shards.values():
-            shard._flush()
+            shard.flush()
 
     @override
     def finish_local(self) -> None:
@@ -303,7 +304,7 @@ class _ZarrShard:
             len(self._buffer) >= self.flush_scene_limit
             or self._buffered_bytes >= _MAX_BUFFERED_BYTES
         ):
-            self._flush()
+            self.flush()
 
     def _validate_record(self, record: SceneRecord) -> None:
         if (
@@ -335,7 +336,7 @@ class _ZarrShard:
             msg = "Map edge arrays in a SceneRecord have inconsistent edge dimensions."
             raise ValueError(msg)
 
-    def _flush(self) -> None:
+    def flush(self) -> None:
         if not self._buffer:
             return
 

@@ -224,6 +224,65 @@ def test_zarr_writer_preserves_empty_map_shapes(tmp_path: Path, scene: Scene) ->
     assert record.map_edge_indices.shape == (2, 0)
 
 
+def test_zarr_chunk_cache_crosses_chunks_without_sharing_records(
+    tmp_path: Path, scene: Scene
+) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.config.models import ZarrOutputConfig
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    config = output_config().model_copy(
+        update={"zarr": ZarrOutputConfig(agent_chunk=3, map_node_chunk=3, map_edge_chunk=1)}
+    )
+    writer = ZarrDatasetWriter(tmp_path, identifier=0, config=config)
+    for number in range(3):
+        writer.write(replace(scene, scene_number=number))
+    writer.finish_local()
+
+    reader = ZarrReader(tmp_path)
+    expected = encode_scene_record(scene, dtype=np.float32)
+    for number in (1, 0, 2, 1):
+        actual = reader[number]
+        assert_scene_record_equal(actual, replace(expected, scene_number=number))
+
+    first = reader[0]
+    first.features[:] = 123
+    first.position_offset[:] = 123
+    first.map_node_positions[:] = 123
+    first.map_edge_indices[:] = 123
+    assert_scene_record_equal(reader[0], replace(expected, scene_number=0))
+
+
+def test_zarr_reader_evicts_cached_shards(
+    tmp_path: Path, scene: Scene, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+    from prejectory.io.readers import zarr as zarr_reader
+
+    for identifier in range(2):
+        writer = ZarrDatasetWriter(tmp_path, identifier=identifier, config=output_config())
+        writer.write(replace(scene, scene_number=identifier))
+        writer.finish_local()
+
+    monkeypatch.setattr(zarr_reader, "_MAX_CACHED_SHARD_BYTES", 1)
+    reader = ZarrReader(tmp_path)
+    for index in (0, 1, 0):
+        assert reader[index].scene_number == index
+        assert len(reader._readers) == 1  # ruff: ignore[private-member-access]  # pyright: ignore[reportPrivateUsage]
+
+
+def test_zarr_cached_slice_rejects_invalid_bounds(tmp_path: Path) -> None:
+    zarr = pytest.importorskip("zarr")
+    from prejectory.io.readers.zarr import _LastChunk  # pyright: ignore[reportPrivateUsage]
+
+    array = zarr.open_array(tmp_path / "array.zarr", mode="w", shape=(2,), chunks=(1,))
+    with pytest.raises(IndexError, match="Invalid cached Zarr slice"):
+        _ = _LastChunk(array).read(2, 3)
+
+
 def test_mds_reader_combines_streams_with_per_row_prediction_bounds(
     tmp_path: Path,
     scene: Scene,

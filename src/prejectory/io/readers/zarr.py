@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from bisect import bisect_right
+from collections import OrderedDict
 from dataclasses import dataclass
 from itertools import accumulate
 from pathlib import Path
-from typing import TypeAlias, final
+from typing import TypeAlias, cast, final
 
 import numpy as np
+import numpy.typing as npt
 from typing_extensions import override
 
 from prejectory.core.errors import ManifestCompatibilityError
@@ -16,6 +18,7 @@ from prejectory.io.records import SceneRecord
 
 try:
     import zarr
+    from zarr.core.metadata import ArrayV2Metadata, ArrayV3Metadata
 except ModuleNotFoundError as error:
     raise_missing_optional_dependency(error, feature="The Zarr scene reader", extra="zarr")
 
@@ -24,6 +27,7 @@ ZARR_FORMAT_VERSION = 2
 
 _NONE_I32 = -1
 _NONE_I64 = np.iinfo(np.int64).min
+_MAX_CACHED_SHARD_BYTES = 256 * 1024 * 1024
 
 # scene/index columns; these must match zarr_writer.py.
 _SCENE_NUMBER = 0
@@ -65,7 +69,7 @@ _REQUIRED_ARRAYS = (
     "map/edges",
 )
 
-ZarrArray: TypeAlias = zarr.Array
+ZarrArray: TypeAlias = zarr.Array[ArrayV2Metadata] | zarr.Array[ArrayV3Metadata]
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,7 +97,8 @@ class ZarrReader(DatasetReader[SceneRecord]):
 
         # Shards are opened lazily. Constructing a split reader therefore only
         # reads each shard's root metadata, not all array objects/data.
-        self._readers: dict[int, _ZarrShardReader] = {}
+        self._readers: OrderedDict[int, _ZarrShardReader] = OrderedDict()
+        self._cached_capacity_bytes: int = 0
 
     @override
     def __len__(self) -> int:
@@ -114,8 +119,72 @@ class ZarrReader(DatasetReader[SceneRecord]):
         reader = self._readers.get(shard_index)
         if reader is None:
             reader = _ZarrShardReader(self._shards[shard_index].path)
+            while (
+                self._readers
+                and self._cached_capacity_bytes + reader.cache_capacity_bytes
+                > _MAX_CACHED_SHARD_BYTES
+            ):
+                _, evicted = self._readers.popitem(last=False)
+                self._cached_capacity_bytes -= evicted.cache_capacity_bytes
             self._readers[shard_index] = reader
+            self._cached_capacity_bytes += reader.cache_capacity_bytes
+        else:
+            self._readers.move_to_end(shard_index)
         return reader
+
+
+@final
+class _LastChunk:
+    """Keep a bounded set of decoded chunks for repeated scene reads."""
+
+    def __init__(self, array: ZarrArray, *, axis: int = 0, max_chunks: int = 1) -> None:
+        self._array = array
+        self._axis = axis
+        self._chunk_size = array.chunks[axis]
+        self._max_chunks = max_chunks
+        self._chunks: OrderedDict[int, npt.NDArray[np.generic]] = OrderedDict()
+
+    @property
+    def capacity_bytes(self) -> int:
+        """Upper bound of decoded data retained by this cache."""
+        return self._max_chunks * int(np.prod(self._array.chunks)) * self._array.dtype.itemsize
+
+    def read(self, start: int, end: int) -> npt.NDArray[np.generic]:
+        """Return an independent NumPy slice, including chunk-spanning slices."""
+        if not 0 <= start <= end <= self._array.shape[self._axis]:
+            msg = f"Invalid cached Zarr slice [{start}:{end}]"
+            raise IndexError(msg)
+        if start == end:
+            shape = list(self._array.shape)
+            shape[self._axis] = 0
+            return np.empty(shape, dtype=self._array.dtype)
+
+        pieces: list[npt.NDArray[np.generic]] = []
+        while start < end:
+            index = start // self._chunk_size
+            data = self._chunks.get(index)
+            if data is None:
+                chunk_start = index * self._chunk_size
+                chunk_end = min(chunk_start + self._chunk_size, self._array.shape[self._axis])
+                if self._axis == 0:
+                    data = np.asarray(self._array[chunk_start:chunk_end])
+                else:
+                    data = np.asarray(self._array[:, chunk_start:chunk_end])
+                self._chunks[index] = data
+                if len(self._chunks) > self._max_chunks:
+                    _ = self._chunks.popitem(last=False)
+            else:
+                self._chunks.move_to_end(index)
+            offset = start - index * self._chunk_size
+            count = min(end - start, data.shape[self._axis] - offset)
+            if self._axis == 0:
+                pieces.append(data[offset : offset + count])
+            else:
+                pieces.append(data[:, offset : offset + count])
+            start += count
+        if len(pieces) == 1:
+            return np.array(pieces[0], copy=True)
+        return np.concatenate(pieces, axis=self._axis)
 
 
 @final
@@ -145,6 +214,37 @@ class _ZarrShardReader(DatasetReader[SceneRecord]):
         self._map_node_types = self._arrays["map/node_types"]
         self._map_edges = self._arrays["map/edges"]
 
+        # These scene-sized columns are small and consulted for every record.
+        # Materialize them once per opened shard instead of decoding their
+        # chunks through Zarr for each individual scene.
+        self._scene_index_data = np.asarray(self._scene_index[:])
+        self._position_offset_data = np.asarray(self._position_offset[:])
+        self._features_cache = _LastChunk(self._features, max_chunks=2)
+        self._agent_ids_cache = _LastChunk(self._agent_ids, max_chunks=2)
+        self._agent_types_cache = _LastChunk(self._agent_types, max_chunks=2)
+        self._screened_mask_cache = _LastChunk(self._screened_mask, max_chunks=2)
+        self._valid_mask_cache = _LastChunk(self._valid_mask, max_chunks=2)
+        self._map_node_positions_cache = _LastChunk(self._map_node_positions, max_chunks=8)
+        self._map_node_types_cache = _LastChunk(self._map_node_types, max_chunks=8)
+        self._map_edges_cache = _LastChunk(self._map_edges, axis=1, max_chunks=8)
+        self.cache_capacity_bytes = (
+            self._scene_index_data.nbytes
+            + self._position_offset_data.nbytes
+            + sum(
+                cache.capacity_bytes
+                for cache in (
+                    self._features_cache,
+                    self._agent_ids_cache,
+                    self._agent_types_cache,
+                    self._screened_mask_cache,
+                    self._valid_mask_cache,
+                    self._map_node_positions_cache,
+                    self._map_node_types_cache,
+                    self._map_edges_cache,
+                )
+            )
+        )
+
     @override
     def __len__(self) -> int:
         return self._length
@@ -156,7 +256,7 @@ class _ZarrShardReader(DatasetReader[SceneRecord]):
         if not 0 <= at < len(self):
             raise IndexError(at)
 
-        row = np.asarray(self._scene_index[at], dtype=np.int64)
+        row = self._scene_index_data[at]
 
         dataset_id = int(row[_DATASET_ID])
         ego_agent_id = int(row[_EGO_AGENT_ID])
@@ -170,7 +270,7 @@ class _ZarrShardReader(DatasetReader[SceneRecord]):
         edge_start = int(row[_MAP_EDGE_START])
         edge_end = int(row[_MAP_EDGE_END])
 
-        edges = np.asarray(self._map_edges[:, edge_start:edge_end])
+        edges = self._map_edges_cache.read(edge_start, edge_end)
 
         return SceneRecord(
             scene_number=int(row[_SCENE_NUMBER]),
@@ -178,15 +278,31 @@ class _ZarrShardReader(DatasetReader[SceneRecord]):
             ego_agent_id=None if ego_agent_id == _NONE_I64 else ego_agent_id,
             prediction_origin=None if prediction_origin == _NONE_I32 else prediction_origin,
             prediction_end=None if prediction_end == _NONE_I32 else prediction_end,
-            position_offset=np.asarray(self._position_offset[at]),
-            agent_ids=np.asarray(self._agent_ids[agent_start:agent_end]),
-            agent_types=np.asarray(self._agent_types[agent_start:agent_end]),
-            screened_agent_mask=np.asarray(self._screened_mask[agent_start:agent_end]),
-            features=np.asarray(self._features[agent_start:agent_end]),
-            valid_mask=np.asarray(self._valid_mask[agent_start:agent_end]),
-            map_node_positions=np.asarray(self._map_node_positions[node_start:node_end]),
-            map_node_types=np.asarray(self._map_node_types[node_start:node_end]),
-            map_edge_indices=np.ascontiguousarray(edges[:2]),
+            position_offset=self._position_offset_data[at].copy(),
+            agent_ids=cast(
+                "npt.NDArray[np.int64]", self._agent_ids_cache.read(agent_start, agent_end)
+            ),
+            agent_types=cast(
+                "npt.NDArray[np.int32]", self._agent_types_cache.read(agent_start, agent_end)
+            ),
+            screened_agent_mask=cast(
+                "npt.NDArray[np.bool_]", self._screened_mask_cache.read(agent_start, agent_end)
+            ),
+            features=cast(
+                "npt.NDArray[np.float32 | np.float64]",
+                self._features_cache.read(agent_start, agent_end),
+            ),
+            valid_mask=cast(
+                "npt.NDArray[np.bool_]", self._valid_mask_cache.read(agent_start, agent_end)
+            ),
+            map_node_positions=cast(
+                "npt.NDArray[np.float32 | np.float64]",
+                self._map_node_positions_cache.read(node_start, node_end),
+            ),
+            map_node_types=cast(
+                "npt.NDArray[np.int32]", self._map_node_types_cache.read(node_start, node_end)
+            ),
+            map_edge_indices=cast("npt.NDArray[np.int32]", np.ascontiguousarray(edges[:2])),
             map_edge_types=np.ascontiguousarray(edges[2]),
         )
 
