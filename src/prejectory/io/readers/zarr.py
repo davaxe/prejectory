@@ -201,32 +201,21 @@ class _ZarrShardReader(DatasetReader[SceneRecord]):
         }
         self._validate_shapes()
 
-        # Hot array handles are bound once rather than resolving root[name] on
-        # every SceneRecord read.
-        self._scene_index = self._arrays["scene/index"]
-        self._position_offset = self._arrays["scene/position_offset"]
-        self._agent_ids = self._arrays["agent/ids"]
-        self._agent_types = self._arrays["agent/types"]
-        self._screened_mask = self._arrays["agent/screened_mask"]
-        self._features = self._arrays["agent/features"]
-        self._valid_mask = self._arrays["agent/valid_mask"]
-        self._map_node_positions = self._arrays["map/node_positions"]
-        self._map_node_types = self._arrays["map/node_types"]
-        self._map_edges = self._arrays["map/edges"]
-
         # These scene-sized columns are small and consulted for every record.
         # Materialize them once per opened shard instead of decoding their
         # chunks through Zarr for each individual scene.
-        self._scene_index_data = np.asarray(self._scene_index[:])
-        self._position_offset_data = np.asarray(self._position_offset[:])
-        self._features_cache = _LastChunk(self._features, max_chunks=2)
-        self._agent_ids_cache = _LastChunk(self._agent_ids, max_chunks=2)
-        self._agent_types_cache = _LastChunk(self._agent_types, max_chunks=2)
-        self._screened_mask_cache = _LastChunk(self._screened_mask, max_chunks=2)
-        self._valid_mask_cache = _LastChunk(self._valid_mask, max_chunks=2)
-        self._map_node_positions_cache = _LastChunk(self._map_node_positions, max_chunks=8)
-        self._map_node_types_cache = _LastChunk(self._map_node_types, max_chunks=8)
-        self._map_edges_cache = _LastChunk(self._map_edges, axis=1, max_chunks=8)
+        self._scene_index_data = np.asarray(self._arrays["scene/index"][:])
+        self._position_offset_data = np.asarray(self._arrays["scene/position_offset"][:])
+        self._features_cache = _LastChunk(self._arrays["agent/features"], max_chunks=2)
+        self._agent_ids_cache = _LastChunk(self._arrays["agent/ids"], max_chunks=2)
+        self._agent_types_cache = _LastChunk(self._arrays["agent/types"], max_chunks=2)
+        self._screened_mask_cache = _LastChunk(self._arrays["agent/screened_mask"], max_chunks=2)
+        self._valid_mask_cache = _LastChunk(self._arrays["agent/valid_mask"], max_chunks=2)
+        self._map_node_positions_cache = _LastChunk(
+            self._arrays["map/node_positions"], max_chunks=8
+        )
+        self._map_node_types_cache = _LastChunk(self._arrays["map/node_types"], max_chunks=8)
+        self._map_edges_cache = _LastChunk(self._arrays["map/edges"], axis=1, max_chunks=8)
         self.cache_capacity_bytes = (
             self._scene_index_data.nbytes
             + self._position_offset_data.nbytes

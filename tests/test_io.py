@@ -8,6 +8,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
+from prejectory.core.categories import DatasetSplit
 from prejectory.core.errors import ManifestCompatibilityError
 from prejectory.io import DatasetManifest, PredictionBounds, PredictionTaskManifest, read_manifest
 from prejectory.io.backends.pickle import PickleWriter
@@ -173,6 +174,39 @@ def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene, predownload: int | N
     assert len(reader) == 1
     assert reader[0].ego_agent_id == 10
     assert_scene_record_equal(reader[0], expected)
+
+
+@pytest.mark.parametrize("splits", [None, (), (DatasetSplit.TRAIN,)])
+def test_mds_parallel_writer_merges_worker_outputs(
+    tmp_path: Path, scene: Scene, splits: tuple[DatasetSplit, ...] | None
+) -> None:
+    pytest.importorskip("streaming")
+    from prejectory.io.backends.mds import MDSDatasetWriter
+    from prejectory.io.readers import MDSReader
+
+    split = next(iter(splits or (None,)))
+    for worker_id in range(2):
+        writer = MDSDatasetWriter(
+            output_dir=tmp_path,
+            config=output_config(),
+            splits=splits,
+            parallel=True,
+            parallel_group=worker_id,
+        )
+        writer.write(replace(scene, scene_number=worker_id, split_assignment=split))
+        writer.finish_local()
+    # Exercise both empty and populated split iterators during finalization.
+    MDSDatasetWriter.finish_dataset(
+        output_dir=tmp_path, splits=iter(splits) if splits is not None else None, parallel=True
+    )
+    reader = MDSReader(path=tmp_path, split=split)
+    assert len(reader) == 2
+    for record in reader:
+        expected = encode_scene_record(
+            replace(scene, scene_number=record.scene_number), dtype=np.float32
+        )
+        assert_scene_record_equal(record, expected)
+    assert {reader[i].scene_number for i in range(len(reader))} == {0, 1}
 
 
 def test_zarr_writer_roundtrip_across_worker_shards(tmp_path: Path, scene: Scene) -> None:

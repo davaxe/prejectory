@@ -137,24 +137,17 @@ class MDSDatasetWriter(DatasetWriter):
         )
         self._writers: dict[DatasetSplit | None, MDSWriter] | None = None
 
-    @classmethod
-    def _init_writers(
-        cls,
-        output_dir: Path,
-        *,
-        splits: tuple[DatasetSplit, ...] | None,
-        parallel: bool,
-        parallel_group: int | str | None,
-        config: OutputConfig,
-        mds_columns: dict[str, str],
-    ) -> dict[DatasetSplit | None, MDSWriter]:
+    def _init_writers(self) -> dict[DatasetSplit | None, MDSWriter]:
         writers: dict[DatasetSplit | None, MDSWriter] = {}
-        for split in splits or [None]:
-            split_dir = output_dir / split_directory_name(split)
-            group_name = (
-                parallel_group if parallel_group not in {None, ""} else mp.current_process().name
-            )
-            final_dir = split_dir if not parallel else split_dir / str(group_name)
+        config = self._config.mds
+        group_name = (
+            self._parallel_group
+            if self._parallel_group not in {None, ""}
+            else mp.current_process().name
+        )
+        for split in self._splits or (None,):
+            split_dir = self._base_output_dir / split_directory_name(split)
+            final_dir = split_dir / str(group_name) if self._parallel else split_dir
             if sys.platform == "win32":
                 # MDSWriter cannot handle the C:\ part of a windows path. Below is
                 # a workaround that might mess up cloud based paths.
@@ -163,11 +156,11 @@ class MDSDatasetWriter(DatasetWriter):
                 path_str = final_dir.as_posix()
             writers[split] = MDSWriter(
                 out=path_str,
-                columns=mds_columns,
-                compression=config.mds.compression,
-                hashes=(list(config.mds.hashes) if config.mds.hashes is not None else None),
-                size_limit=config.mds.size_limit,
-                exist_ok=config.mds.exist_ok,
+                columns=self._mds_columns,
+                compression=config.compression,
+                hashes=(list(config.hashes) if config.hashes is not None else None),
+                size_limit=config.size_limit,
+                exist_ok=config.exist_ok,
             )
         return writers
 
@@ -175,14 +168,7 @@ class MDSDatasetWriter(DatasetWriter):
     def write(self, scene: Scene) -> None:
         """Encode and write one scene to the split-specific shard."""
         if self._writers is None:
-            self._writers = self._init_writers(
-                self._base_output_dir,
-                splits=self._splits,
-                parallel=self._parallel,
-                parallel_group=self._parallel_group,
-                config=self._config,
-                mds_columns=self._mds_columns,
-            )
+            self._writers = self._init_writers()
 
         split: DatasetSplit | None = scene.split_assignment
         if split not in self._writers:
@@ -237,14 +223,9 @@ class MDSDatasetWriter(DatasetWriter):
         """Finalize dataset-wide MDS output after all workers finish."""
         if not parallel:
             return
-        split_tuple = tuple(splits) if splits is not None else None
-        if split_tuple:
-            for split in split_tuple:
-                with _suppress_output():
-                    merge_index(str(output_dir / split_directory_name(split)), keep_local=True)
-            return
-        with _suppress_output():
-            merge_index(str(output_dir / split_directory_name(None)), keep_local=True)
+        for split in tuple(splits or ()) or (None,):
+            with _suppress_output():
+                merge_index(str(output_dir / split_directory_name(split)), keep_local=True)
 
 
 @contextmanager

@@ -200,89 +200,37 @@ class _ZarrShard:
             else (ZstdCodec(level=config.compression_level),)
         )
 
-        arrays: dict[str, ZarrArray] = {
-            "scene/index": _empty_array(
-                root,
-                "scene/index",
+        # Each entry is (dtype, initial shape, chunk shape). Edge rows are
+        # [source, target, type], allowing one contiguous read per scene.
+        layouts: dict[str, tuple[npt.DTypeLike, tuple[int, ...], tuple[int, ...]]] = {
+            "scene/index": (
                 np.int64,
                 (0, _SCENE_INDEX_WIDTH),
                 (config.scene_chunk, _SCENE_INDEX_WIDTH),
-                compressors,
             ),
-            "scene/position_offset": _empty_array(
-                root,
-                "scene/position_offset",
-                np.float64,
-                (0, 2),
-                (config.scene_chunk, 2),
-                compressors,
-            ),
-            "agent/ids": _empty_array(
-                root,
-                "agent/ids",
-                np.int64,
-                (0,),
-                (config.agent_chunk,),
-                compressors,
-            ),
-            "agent/types": _empty_array(
-                root,
-                "agent/types",
-                np.int32,
-                (0,),
-                (config.agent_chunk,),
-                compressors,
-            ),
-            "agent/screened_mask": _empty_array(
-                root,
-                "agent/screened_mask",
-                np.bool_,
-                (0,),
-                (config.agent_chunk,),
-                compressors,
-            ),
-            "agent/features": _empty_array(
-                root,
-                "agent/features",
+            "scene/position_offset": (np.float64, (0, 2), (config.scene_chunk, 2)),
+            "agent/ids": (np.int64, (0,), (config.agent_chunk,)),
+            "agent/types": (np.int32, (0,), (config.agent_chunk,)),
+            "agent/screened_mask": (np.bool_, (0,), (config.agent_chunk,)),
+            "agent/features": (
                 record.features.dtype,
                 (0, horizon, feature_dim),
                 (config.agent_chunk, horizon, feature_dim),
-                compressors,
             ),
-            "agent/valid_mask": _empty_array(
-                root,
-                "agent/valid_mask",
-                np.bool_,
-                (0, horizon),
-                (config.agent_chunk, horizon),
-                compressors,
-            ),
-            "map/node_positions": _empty_array(
-                root,
-                "map/node_positions",
+            "agent/valid_mask": (np.bool_, (0, horizon), (config.agent_chunk, horizon)),
+            "map/node_positions": (
                 record.map_node_positions.dtype,
                 (0, 2),
                 (config.map_node_chunk, 2),
-                compressors,
             ),
-            "map/node_types": _empty_array(
-                root,
-                "map/node_types",
-                np.int32,
-                (0,),
-                (config.map_node_chunk,),
-                compressors,
-            ),
-            # Rows are [source, target, edge_type]. This gives the reader one
-            # contiguous edge read and avoids a per-scene transpose/copy.
-            "map/edges": _empty_array(
-                root,
-                "map/edges",
-                np.int32,
-                (3, 0),
-                (3, config.map_edge_chunk),
-                compressors,
-            ),
+            "map/node_types": (np.int32, (0,), (config.map_node_chunk,)),
+            "map/edges": (np.int32, (3, 0), (3, config.map_edge_chunk)),
+        }
+        arrays: dict[str, ZarrArray] = {
+            name: root.create_array(
+                name, dtype=dtype, shape=shape, chunks=chunks, compressors=compressors
+            )
+            for name, (dtype, shape, chunks) in layouts.items()
         }
 
         return cls(
@@ -432,23 +380,6 @@ def _consolidate_shard(path: Path) -> None:
                 _ = consolidate_metadata(path, zarr_format=3)
         except (NotImplementedError, TypeError):
             pass
-
-
-def _empty_array(
-    root: zarr.Group,
-    name: str,
-    dtype: npt.DTypeLike,
-    shape: tuple[int, ...],
-    chunks: tuple[int, ...],
-    compressors: Compressors,
-) -> ZarrArray:
-    return root.create_array(
-        name,
-        shape=shape,
-        dtype=dtype,
-        chunks=chunks,
-        compressors=compressors,
-    )
 
 
 def _concat(records: tuple[SceneRecord, ...], attribute: str) -> npt.NDArray[np.generic]:
