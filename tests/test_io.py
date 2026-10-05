@@ -142,7 +142,8 @@ def test_pickle_writer_rejects_multiple_transforms(tmp_path: Path) -> None:
         )
 
 
-def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
+@pytest.mark.parametrize("predownload", [None, 16])
+def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene, predownload: int | None) -> None:
     pytest.importorskip("streaming")
     scene = replace(scene, dataset="demo")
 
@@ -162,7 +163,13 @@ def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
     writer.finish_local()
     writer.finish_final()
 
-    reader = MDSReader(path=output_dir)
+    reader = (
+        MDSReader(path=output_dir)
+        if predownload is None
+        else MDSReader(path=output_dir, predownload=predownload)
+    )
+    backend = reader._backend  # pyright: ignore[reportPrivateUsage]  # ruff: ignore[private-member-access]
+    assert backend.predownload == (64 if predownload is None else predownload)
     assert len(reader) == 1
     assert reader[0].ego_agent_id == 10
     assert_scene_record_equal(reader[0], expected)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, cast, overload
 
 from typing_extensions import TypedDict, Unpack, override
 
@@ -13,8 +13,11 @@ from prejectory.io.encoding.mds import decode_mds_row
 
 try:
     from streaming import Stream, StreamingDataset
+    from streaming.base.format.mds.reader import MDSReader as MosaicShardReader
 except ModuleNotFoundError as error:
     raise_missing_optional_dependency(error, feature="The MDS storage reader", extra="mds")
+
+from prejectory.io.readers._mds import PlannedMDSShardReader
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping, Sequence
@@ -75,7 +78,8 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
     reader_args : MDSReaderInitArgs, optional
         Additional keyword arguments forwarded to the `StreamingDataset`
         constructor. `batch_size` defaults to 1 for direct iteration; set it to
-        match your DataLoader when training.
+        match your DataLoader when training. `predownload` defaults to at least
+        64 samples to keep background shard preparation ahead of consumption.
     """
 
     def __init__(
@@ -88,7 +92,10 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
         **reader_args: Unpack[MDSReaderInitArgs],
     ) -> None:
         super().__init__()
-        _ = reader_args.setdefault("batch_size", 1)
+        batch_size = reader_args.setdefault("batch_size", 1)
+        # A batch size of one otherwise shrinks Mosaic's default window to
+        # eight samples, repeatedly starving its background preparation thread.
+        _ = reader_args.setdefault("predownload", max(64, 8 * batch_size))
         self._convert_record: Callable[[Mapping[str, Any]], RecordT] = convert_raw
         if path is not None and streams is not None:
             msg = "Provide either path or streams, not both."
@@ -105,6 +112,12 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
             )
         else:
             self._backend = StreamingDataset(streams=streams, **reader_args)
+
+        # Replace only standard MDS shards, after Mosaic validates their codecs.
+        # Downloads, eviction, partitioning and iteration remain Mosaic's job.
+        for index, shard in enumerate(cast("list[object]", self._backend.shards)):
+            if type(shard) is MosaicShardReader:
+                self._backend.shards[index] = PlannedMDSShardReader(shard)
 
     @override
     def __len__(self) -> int:
