@@ -1,6 +1,6 @@
 """Compare processed exports through native, Torch, and PyG read paths.
 
-python benchmark_io.py data/waymo-mds data/zarr --backend mds,zarr \
+python examples/benchmark_io.py data/waymo-mds data/zarr --backend mds,zarr \
     --adapter native,torch,pyg --view full,forecast --output .cache/io.json
 
 Each dataset/adapter/view runs in a fresh subprocess, isolating Mosaic shared
@@ -20,7 +20,7 @@ import subprocess  # ruff: ignore[suspicious-subprocess-import]
 import sys
 import time
 from importlib.metadata import PackageNotFoundError, version
-from itertools import islice
+from itertools import islice, product
 from pathlib import Path
 from typing import Any
 
@@ -39,12 +39,10 @@ def _summary(values: list[float]) -> dict[str, Any]:
 def _wrap(reader: Any, adapter: str, view: str, *, iterable: bool = False) -> Any:  # ruff: ignore[any-type]
     if adapter == "native":
         return reader
-    if adapter == "torch":
-        module = importlib.import_module("prejectory.io.adapters.torch")
-        name = "TorchSceneDataset" if view == "full" else "TorchForecastDataset"
-    else:
-        module = importlib.import_module("prejectory.io.adapters.pyg")
-        name = "HeteroSceneDataset" if view == "full" else "HeteroForecastDataset"
+    module = importlib.import_module(f"prejectory.io.adapters.{adapter}")
+    name = ("Torch" if adapter == "torch" else "Hetero") + (
+        "SceneDataset" if view == "full" else "ForecastDataset"
+    )
     return getattr(module, ("Iterable" if iterable else "") + name)(reader)
 
 
@@ -137,11 +135,12 @@ def _worker(config: dict[str, Any]) -> dict[str, Any]:
     forecast = config["adapter"] == "native" and config["view"] == "forecast"
     first_ms, _ = _run_pass(dataset, [0], forecast=forecast, iterate=False)
     rng = np.random.default_rng(config["seed"])
+    sequential = list(range(count))
     indices = {
-        "sequential": list(range(count)),
+        "sequential": sequential,
         "random": rng.choice(len(reader), count, replace=False).tolist(),
         "repeated": [0] * count,
-        "iterate": list(range(count)),
+        "iterate": sequential,
     }
     iterable = _wrap(reader, config["adapter"], config["view"], iterable=True)
     timings: dict[str, list[float]] = {name: [] for name in config["patterns"]}
@@ -160,7 +159,7 @@ def _worker(config: dict[str, Any]) -> dict[str, Any]:
     records = [reader[i] for i in indices["random"]]
     conversion = _wrap(records, config["adapter"], config["view"])
     conversion_ms = [
-        _run_pass(conversion, list(range(count)), forecast=forecast, iterate=False)[0]
+        _run_pass(conversion, sequential, forecast=forecast, iterate=False)[0]
         for _ in range(config["repeats"])
     ]
     sizes = [record.features.nbytes for record in records]
@@ -212,7 +211,7 @@ def main() -> None:  # ruff: ignore[complex-structure]
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.worker:
-        print(json.dumps(_worker(json.load(sys.stdin))))  # ruff: ignore[print]
+        print(json.dumps(_worker(json.load(sys.stdin))))
         return
     if min(args.count, args.repeats, args.threads) < 1:
         parser.error("count, repeats, and threads must be positive")
@@ -224,47 +223,45 @@ def main() -> None:  # ruff: ignore[complex-structure]
         ("view", {"full", "forecast"}),
         ("patterns", {"sequential", "random", "repeated", "iterate"}),
     ):
-        if not set(getattr(args, field).split(",")) <= allowed:
+        values = getattr(args, field).split(",")
+        if not set(values) <= allowed:
             parser.error(f"Invalid --{field}; choose from {sorted(allowed)}")
+        setattr(args, field, values)
+    settings = {
+        name: value
+        for name, value in vars(args).items()
+        if name not in {"datasets", "output", "worker"}
+    }
     results = []
     for path in args.datasets:
         manifest = json.loads((path / "manifest.json").read_text())
         backend = manifest["storage_backend"]
-        if backend not in args.backend.split(","):
+        if backend not in args.backend:
             continue
-        for adapter in args.adapter.split(","):
-            for view in args.view.split(","):
-                config = {
-                    "path": str(path.resolve()),
-                    "backend": backend,
-                    "adapter": adapter,
-                    "view": view,
-                    "count": args.count,
-                    "repeats": args.repeats,
-                    "seed": args.seed,
-                    "split": args.split,
-                    "threads": args.threads,
-                    "batch_size": args.batch_size,
-                    "workers": args.workers,
-                    "patterns": args.patterns.split(","),
-                }
-                process = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true]
-                    [sys.executable, __file__, "--worker"],
-                    input=json.dumps(config),
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if process.returncode:
-                    msg = f"Benchmark failed for {config}:\n{process.stderr}"
-                    raise RuntimeError(msg)
-                result = json.loads(process.stdout)
-                results.append(result)
-                medians = " ".join(
-                    f"{name}={stats['median']:.4f}"
-                    for name, stats in result["ms_per_scene"].items()
-                )
-                print(f"{path} {adapter}/{view}: {medians} ms/scene", flush=True)  # ruff: ignore[print]
+        for adapter, view in product(args.adapter, args.view):
+            config = {
+                **settings,
+                "path": str(path.resolve()),
+                "backend": backend,
+                "adapter": adapter,
+                "view": view,
+            }
+            process = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true]
+                [sys.executable, __file__, "--worker"],
+                input=json.dumps(config),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if process.returncode:
+                msg = f"Benchmark failed for {config}:\n{process.stderr}"
+                raise RuntimeError(msg)
+            result = json.loads(process.stdout)
+            results.append(result)
+            medians = " ".join(
+                f"{name}={stats['median']:.4f}" for name, stats in result["ms_per_scene"].items()
+            )
+            print(f"{path} {adapter}/{view}: {medians} ms/scene", flush=True)
     if not results:
         parser.error("No datasets matched the selected backends")
     if args.output:
