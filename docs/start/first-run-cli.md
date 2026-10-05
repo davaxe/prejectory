@@ -73,13 +73,14 @@ explicitly when needed:
 
 - `pickle` for the simplest persisted output with no extra dependency
 - `mds` for Mosaic Streaming shards, which requires `prejectory[mds]`
+- `zarr` for chunked, indexed arrays, which requires `prejectory[zarr]`
 - `null` to execute the pipeline without writing any dataset files
 
 ## Useful options
 
 | Option | Effect |
 | --- | --- |
-| `--storage-backend` | Choose a registered storage backend such as `pickle`, `mds`, or `null`. |
+| `--storage-backend` | Choose a registered storage backend such as `pickle`, `mds`, `zarr`, or `null`. |
 | `--scene-schema` | Override the output trajectory schema for this run. |
 | `--jobs` | Override worker count. Values above `1` enable parallel execution. |
 | `--progress/--no-progress` | Enable or disable the live progress display during processing. |

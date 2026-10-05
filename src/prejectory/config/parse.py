@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import sys
+import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,11 +19,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from prejectory.datasets.registry import DatasetDescriptor
-
-if sys.version_info >= (3, 11):
-    import tomllib  # pyright: ignore[reportUnreachable]
-else:
-    import tomli as tomllib
 
 
 def parse_config(path: str | Path) -> ProjectConfig:

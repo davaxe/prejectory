@@ -25,8 +25,6 @@ if TYPE_CHECKING:
     from prejectory.core.scene import Scene
     from prejectory.io.records import SceneRecord
 
-NDArrayAny = npt.NDArray[Any]
-
 
 @dataclass(slots=True)
 class CustomPickleRecord:
@@ -168,6 +166,62 @@ def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
     assert len(reader) == 1
     assert reader[0].ego_agent_id == 10
     assert_scene_record_equal(reader[0], expected)
+
+
+def test_zarr_writer_roundtrip_across_worker_shards(tmp_path: Path, scene: Scene) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    scene = replace(scene, dataset="demo")
+    output_dir = tmp_path / "zarr"
+    bounds = PredictionBounds(2, 3)
+    for worker_id, scene_number in enumerate((7, 8)):
+        writer = ZarrDatasetWriter(
+            output_dir=output_dir,
+            identifier=worker_id,
+            config=output_config(),
+            prediction_bounds=bounds,
+        )
+        writer.write(replace(scene, scene_number=scene_number))
+        writer.finish_local()
+
+    reader = ZarrReader(output_dir)
+    assert len(reader) == 2
+    assert reader[-1].scene_number == 8
+    expected = encode_scene_record(scene, dtype=np.float32, prediction_bounds=bounds)
+    assert_scene_record_equal(reader[0], expected)
+
+
+def test_zarr_writer_flushes_without_closing_shard(tmp_path: Path, scene: Scene) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    writer = ZarrDatasetWriter(tmp_path, identifier=0, config=output_config())
+    writer.write(replace(scene, scene_number=1))
+    writer.flush_local()
+    assert [record.scene_number for record in ZarrReader(tmp_path)] == [1]
+
+    writer.write(replace(scene, scene_number=2))
+    writer.flush_local()
+    writer.finish_local()
+    ZarrDatasetWriter.finish_dataset(tmp_path, splits=None)
+    assert [record.scene_number for record in ZarrReader(tmp_path)] == [1, 2]
+
+
+def test_zarr_writer_preserves_empty_map_shapes(tmp_path: Path, scene: Scene) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    writer = ZarrDatasetWriter(tmp_path, identifier=0, config=output_config())
+    writer.write(replace(scene, map_key=None, map_resolver=None))
+    writer.finish_local()
+
+    record = ZarrReader(tmp_path)[0]
+    assert record.map_node_positions.shape == (0, 2)
+    assert record.map_edge_indices.shape == (2, 0)
 
 
 def test_mds_reader_combines_streams_with_per_row_prediction_bounds(
@@ -405,15 +459,15 @@ def _build_pickle_reader(
     return PickleReader(output_dir), expected
 
 
-def _to_numpy(tensor: torch.Tensor) -> NDArrayAny:
-    return cast("NDArrayAny", tensor.detach().cpu().numpy())
+def _to_numpy(tensor: torch.Tensor) -> npt.NDArray[Any]:
+    return cast("npt.NDArray[Any]", tensor.detach().cpu().numpy())
 
 
-def _assert_tensor_allclose(tensor: torch.Tensor, expected: NDArrayAny) -> None:
+def _assert_tensor_allclose(tensor: torch.Tensor, expected: npt.NDArray[Any]) -> None:
     np.testing.assert_allclose(_to_numpy(tensor), expected)
 
 
-def _assert_tensor_array_equal(tensor: torch.Tensor, expected: NDArrayAny) -> None:
+def _assert_tensor_array_equal(tensor: torch.Tensor, expected: npt.NDArray[Any]) -> None:
     np.testing.assert_array_equal(_to_numpy(tensor), expected)
 
 

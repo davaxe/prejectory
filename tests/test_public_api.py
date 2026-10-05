@@ -139,12 +139,14 @@ def test_run_executes_inspected_plan_after_cwd_and_config_change(
         _ = dataset[1]
 
 
-@pytest.mark.parametrize("backend", ["pickle", "mds"])
+@pytest.mark.parametrize("backend", ["pickle", "mds", "zarr"])
 def test_open_dataset_detects_backend_and_selects_splits(
     run_request: ExecutionRequest, backend: str
 ) -> None:
     if backend == "mds":
         pytest.importorskip("streaming")
+    elif backend == "zarr":
+        pytest.importorskip("zarr")
     result = run(
         run_request.model_copy(
             update={
@@ -245,6 +247,38 @@ def test_invalid_mds_transform_fails_during_plan(run_request: ExecutionRequest) 
     with pytest.raises(ConfigurationError, match="mds_columns"):
         _ = plan(invalid)
     assert not run_request.output_dir.exists()
+
+
+def test_zarr_rejects_custom_payload_during_plan(run_request: ExecutionRequest) -> None:
+    pytest.importorskip("zarr")
+    invalid = run_request.model_copy(
+        update={
+            "storage_backend": "zarr",
+            "output_transform": OutputTransform(
+                record_transform=custom_record,
+                format_id="example.number",
+            ),
+        }
+    )
+    with pytest.raises(ConfigurationError, match="canonical SceneRecord"):
+        _ = plan(invalid)
+    assert not run_request.output_dir.exists()
+
+
+def test_parallel_zarr_export_is_readable(run_request: ExecutionRequest) -> None:
+    pytest.importorskip("zarr")
+    result = run(
+        run_request.model_copy(
+            update={
+                "storage_backend": "zarr",
+                "overrides": DatasetConfigPatch(runtime=RuntimePatch(jobs=2)),
+            }
+        )
+    )
+
+    dataset = open_dataset(result.output_dir)
+    assert len(dataset) == result.written_scenes == 1
+    assert dataset[0].scene_number == 0
 
 
 def test_progress_callback_is_observable_and_failure_does_not_publish(

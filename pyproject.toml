@@ -12,7 +12,7 @@ authors = [
 ]
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
     "numpy>=1.24.0",
@@ -20,8 +20,7 @@ dependencies = [
     "scipy>=1.10.0",
     "typing-extensions>=4.15.0",
     "pydantic>=2.12.5",
-    "tomli>=2.0.1; python_version < '3.11'",
-    "rich>=14.3.3"
+    "rich>=14.3.3",
 ]
 
 keywords = ["autonomous driving", "trajectory data", "data processing", "datasets", "machine learning"]
@@ -30,7 +29,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -52,6 +50,7 @@ prejectory = "prejectory.__main__:main"
 waymo = ["protobuf>=4.25.8"]
 ad4che = ["opencv-python"]
 mds = ["mosaicml-streaming>=0.13.0"]
+zarr = ["zarr>=3.1,<4"]
 torch = ["torch>=2.0.0"]
 pyg = ["torch>=2.0.0", "torch-geometric>=2.7.0"]
 cli = ["typer>=0.24.1"]
@@ -69,7 +68,6 @@ lint = [
 typecheck = [
     "basedpyright>=1.0.0",
     "scipy-stubs",
-    "tomli>=2.0.1",
 ]
 
 build = [
@@ -170,7 +168,7 @@ skip-magic-trailing-comma = false
 split-on-trailing-comma = false
 
 [tool.basedpyright]
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 pythonPlatform = "All"
 typeCheckingMode = "recommended"
 include = ["src", "tests"]

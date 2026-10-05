@@ -242,9 +242,12 @@ class ParallelExecutor:
         if accounting.limit_reached():
             return None
 
-        for scene in iter_scenes_from_source(_ctx.processor, source, accounting):
-            _ctx.writer.write(scene)
-            accounting.record_written(scene.split_assignment)
+        try:
+            for scene in iter_scenes_from_source(_ctx.processor, source, accounting):
+                _ctx.writer.write(scene)
+                accounting.record_written(scene.split_assignment)
+        finally:
+            _ctx.writer.flush_local()
 
         return accounting.cleanup_summary()
 

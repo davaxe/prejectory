@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Generic, Protocol, TypeAlias, runtime_checkable
 
 from typing_extensions import TypeVar, override
@@ -37,7 +37,7 @@ dtype policy, recentering, map resolution, and reader compatibility.
 """
 
 
-class StorageBackend(str, Enum):
+class StorageBackend(StrEnum):
     """Supported persisted storage backends."""
 
     MDS = "mds"
@@ -52,6 +52,8 @@ class StorageBackend(str, Enum):
     """
     PICKLE = "pickle"
     """Pickle storage backend. Requires no extra dependencies."""
+    ZARR = "zarr"
+    """Chunked Zarr storage backend with random scene access."""
     NULL = "null"
     """Null storage backend that discards all data. Useful for testing."""
 
@@ -101,6 +103,10 @@ class DatasetWriter(Protocol):
 
     def finish_local(self) -> None:
         """Finalize worker-local state once the current worker is done."""
+        _ = self
+
+    def flush_local(self) -> None:
+        """Flush worker-local state to persisted storage without finalizing."""
         _ = self
 
 

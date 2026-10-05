@@ -1,7 +1,7 @@
 # Reading data
 
 `prejectory` readers expose one common in-memory record model across storage backends. This means
-you can switch between `pickle` and `mds` without changing your downstream scene-processing code.
+you can switch between `pickle`, `mds`, and `zarr` without changing your downstream scene-processing code.
 
 ## Reader model
 
@@ -46,6 +46,23 @@ Task-free records require explicit bounds. NumPy and Torch records both use `val
 forecast records use `history_mask` and `future_mask`.
 
 Only open trusted pickle exports: unpickling can execute code.
+
+## Read from Zarr output
+
+Install the Zarr extra before using the reader: `pip install prejectory[zarr]`.
+
+<!-- no-validate -->
+```python
+from pathlib import Path
+from prejectory.io.readers import ZarrReader
+
+reader = ZarrReader(Path("output"), split="train")
+scene = reader[0]
+print(scene.features.shape, scene.map_edge_indices.shape)
+```
+
+The reader combines all worker shards in the selected split and supports
+integer and negative indexing.
 
 ## Read the manifest first
 

@@ -278,6 +278,13 @@ def validate_output_options(
         from prejectory.io.backends.mds import MDSDatasetWriter  # ruff: ignore[import-outside-top-level]
 
         _ = MDSDatasetWriter
+    elif backend == StorageBackend.ZARR:
+        if transform is not None:
+            msg = "The Zarr backend only supports the canonical SceneRecord payload."
+            raise prejectory_exceptions.ConfigurationError(msg)
+        from prejectory.io.backends.zarr import ZarrDatasetWriter  # ruff: ignore[import-outside-top-level]
+
+        _ = ZarrDatasetWriter
     elif transform is not None and transform.mds_columns is not None:
         msg = "mds_columns is only supported by the MDS backend."
         raise prejectory_exceptions.ConfigurationError(msg)

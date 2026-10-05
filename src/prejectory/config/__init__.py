@@ -41,6 +41,8 @@ from prejectory.config.models import (
     TrajectoryBufferExtraction,
     WindowConfig,
     WindowPatch,
+    ZarrOutputConfig,
+    ZarrOutputPatch,
 )
 from prejectory.config.parse import DatasetConfigEntry, ProjectConfig, parse_config
 
@@ -89,5 +91,7 @@ __all__ = [
     "TrajectoryBufferExtraction",
     "WindowConfig",
     "WindowPatch",
+    "ZarrOutputConfig",
+    "ZarrOutputPatch",
     "parse_config",
 ]

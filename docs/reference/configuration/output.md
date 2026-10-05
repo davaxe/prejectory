@@ -24,6 +24,19 @@ This nested block only matters when writing MDS output and is used to tune shard
     storage backend. These values are only used when the selected storage
     backend is `mds`.
 
+## `[output.zarr]` section
+
+Zarr stores each worker's output as an independent shard and uses these values
+to tune array chunks and compression.
+
+| Key | Type | Description | Default |
+|---|---|---|---|
+| `scene_chunk` | `int` | Chunk length for scene metadata and offset arrays. | `256` |
+| `agent_chunk` | `int` | Chunk length for flattened agent arrays. | `4096` |
+| `map_node_chunk` | `int` | Chunk length for flattened map-node arrays. | `16384` |
+| `map_edge_chunk` | `int` | Chunk length for flattened map-edge arrays. | `16384` |
+| `compression_level` | `int` or `none` | Zstandard compression level from 0 to 22; `none` disables compression. | `3` |
+
 ## Minimal example
 
 ```toml
@@ -37,6 +50,11 @@ compression = "zstd:7"
 hashes = ["sha1", "xxh64"]
 size_limit = 33554432
 exist_ok = true
+
+[datasets.a43.output.zarr]
+scene_chunk = 128
+agent_chunk = 2048
+compression_level = 5
 ```
 
 The canonical concept is the trajectory schema, and the TOML key is

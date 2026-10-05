@@ -168,6 +168,10 @@ def test_resolve_applies_defaults_without_dataset(tmp_path: Path) -> None:
 
             [defaults.output.mds]
             compression = "zstd:3"
+
+            [defaults.output.zarr]
+            scene_chunk = 128
+            compression_level = 5
             """,
         ),
     )
@@ -179,6 +183,8 @@ def test_resolve_applies_defaults_without_dataset(tmp_path: Path) -> None:
     assert resolved.output.precision == "float32"
     assert resolved.output.recenter_positions is True
     assert resolved.output.mds.compression == "zstd:3"
+    assert resolved.output.zarr.scene_chunk == 128
+    assert resolved.output.zarr.compression_level == 5
 
 
 def test_resolve_applies_defaults_before_dataset(tmp_path: Path) -> None:

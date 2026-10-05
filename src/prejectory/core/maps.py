@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import multiprocessing.shared_memory as shm
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
 from scipy.spatial import cKDTree
-from typing_extensions import Self, override
+from typing_extensions import override
 
 from prejectory.core.categories import EdgeType
 

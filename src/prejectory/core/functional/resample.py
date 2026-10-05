@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from enum import Enum
+from enum import StrEnum
 from fractions import Fraction
 from typing import TYPE_CHECKING, Final, Literal, cast
 
@@ -29,7 +29,7 @@ Interpolator = PPoly
 InterpolatorFactory = Callable[[npt.NDArray[np.float64], npt.NDArray[np.float64]], Interpolator]
 
 
-class ResampleMethod(str, Enum):
+class ResampleMethod(StrEnum):
     """Interpolation strategy used during resampling."""
 
     LINEAR = "linear"

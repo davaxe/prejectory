@@ -116,8 +116,8 @@ def open_dataset(
     """
     root = Path(path)
     manifest = read_manifest(root)
-    if manifest.storage_backend not in {"pickle", "mds"}:
-        raise UnsupportedStorageBackendError(manifest.storage_backend, ("pickle", "mds"))
+    if manifest.storage_backend not in {"pickle", "mds", "zarr"}:
+        raise UnsupportedStorageBackendError(manifest.storage_backend, ("pickle", "mds", "zarr"))
     if decoder is None and (manifest.payload_format, manifest.payload_version) != (
         "prejectory.scene",
         1,
@@ -142,7 +142,7 @@ def open_dataset(
             )
             if decoder is not None:
                 reader = _DecodedReader(reader, decoder)
-        else:
+        elif manifest.storage_backend == "mds":
             # Empty MDS partitions may have no index/shards.
             if manifest.split_counts[name] == 0:
                 _validate_empty_mds_split(root / name)
@@ -158,6 +158,12 @@ def open_dataset(
                     convert_raw=decoder,
                 )
             )
+        else:
+            from prejectory.io.readers.zarr import ZarrReader  # ruff: ignore[import-outside-top-level]
+
+            reader = ZarrReader(root, split=name)
+            if decoder is not None:
+                reader = _DecodedReader(reader, decoder)
         if len(reader) != manifest.split_counts[name]:
             msg = (
                 f"Split {name!r} has {len(reader)} records; "

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, cast
+from typing import TYPE_CHECKING, Generic, Self, cast
 
-from typing_extensions import Self, TypeVar
+from typing_extensions import TypeVar
 
 from prejectory.core.typing import SourceT
 from prejectory.processing.loading.models import LoaderOptionsModel, NoLoaderOptions

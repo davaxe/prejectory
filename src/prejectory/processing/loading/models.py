@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, ClassVar, Generic
+from typing import TYPE_CHECKING, ClassVar, Generic, Self
 
 from pydantic import BaseModel, ConfigDict
-from typing_extensions import Self
 
 from prejectory.core.typing import SourceId, SourceT
 from prejectory.processing.maps import MapReference
