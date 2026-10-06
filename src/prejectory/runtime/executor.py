@@ -4,14 +4,12 @@
 
 from __future__ import annotations
 
-import functools
 import logging
 import multiprocessing as mp
 import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
-from multiprocessing.util import Finalize
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from prejectory.runtime.accounting import (
     CleanupAccumulator,
@@ -23,18 +21,16 @@ from prejectory.runtime.processor import RuntimeProcessor
 from prejectory.runtime.state import Progress, SharedResources
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator, Iterable, Iterator
+    from collections.abc import Generator, Iterator
     from multiprocessing.context import BaseContext
     from multiprocessing.pool import Pool
-    from multiprocessing.synchronize import Event
+    from multiprocessing.synchronize import Barrier, Event
 
     from prejectory.core.scene import Scene
-    from prejectory.core.typing import P
     from prejectory.io.base import DatasetWriter, WriterProvider
     from prejectory.processing.loading.models import DatasetSource
     from prejectory.runtime.types import CleanupSummary, ExecutionPlan
 
-ReturnT = TypeVar("ReturnT")
 _ctx: WorkerRuntime
 
 logger = logging.getLogger(__name__)
@@ -48,6 +44,7 @@ class WorkerRuntime:
     worker_id: int
     processor: RuntimeProcessor | None = None
     writer: DatasetWriter | None = None
+    finish_barrier: Barrier | None = None
 
 
 @contextmanager
@@ -197,14 +194,7 @@ class ParallelExecutor:
 
     def execute(self, writer_provider: WriterProvider) -> Progress:
         """Process selected sources across the worker pool."""
-        for cleanup_summary in self._execute_parallel(
-            self._process_fn_write,
-            self._processor.iter_sources(),
-            _init_write_worker,
-            self._shared,
-            self._processor,
-            writer_provider,
-        ):
+        for cleanup_summary in self._execute_parallel(writer_provider):
             self._cleanup_accumulator.merge(cleanup_summary)
         writer_provider.finish_final()
         return self.snapshot()
@@ -253,21 +243,29 @@ class ParallelExecutor:
 
     def _execute_parallel(
         self,
-        process_fn: Callable[[DatasetSource[Any]], ReturnT],
-        payloads: Iterable[DatasetSource[Any]],
-        initializer: Callable[P, object],
-        *args: P.args,
-        **kwargs: P.kwargs,
-    ) -> Iterable[ReturnT]:
+        writer_provider: WriterProvider,
+    ) -> Iterator[CleanupSummary | None]:
         self._shared.reset()
-        pool_initializer = functools.partial(initializer, *args, **kwargs)
+        worker_count = self._processes or mp.cpu_count()
+        finish_barrier = self._mp_context.Barrier(worker_count)
         self._running = True
         self.changed().set()
         pool: Pool | None = None
         completed = False
         try:
-            pool = self._mp_context.Pool(self._processes, initializer=pool_initializer)
-            yield from pool.imap_unordered(process_fn, payloads, self._chunksize)
+            pool = self._mp_context.Pool(
+                worker_count,
+                initializer=_init_write_worker,
+                initargs=(self._shared, self._processor, writer_provider, finish_barrier),
+            )
+            yield from pool.imap_unordered(
+                self._process_fn_write,
+                self._processor.iter_sources(),
+                self._chunksize,
+            )
+            # Each finish task waits at the barrier, so no worker can take a
+            # second task before every worker has closed its own writer.
+            _ = pool.map(_finish_write_worker, range(worker_count), chunksize=1)
             completed = True
         finally:
             if pool is not None:
@@ -289,46 +287,34 @@ class ParallelExecutor:
         return max(chunksize, 1)
 
 
-def _init_worker(
-    shared: SharedResources,
-    processor: RuntimeProcessor | None = None,
-    *,
-    with_finalize: bool = True,
-) -> None:
-    global _ctx  # ruff: ignore[global-statement]
-    worker_id = shared.next_worker()
-    shared.progress.worker_started()
-    _ctx = WorkerRuntime(shared=shared, worker_id=worker_id, processor=processor)
-    if with_finalize:
-
-        def cleanup() -> None:
-            _ctx.shared.progress.worker_stopped()
-
-        _ = Finalize(obj=None, callback=cleanup, exitpriority=10)
-
-
 def _init_write_worker(
     shared: SharedResources,
     processor: RuntimeProcessor,
     writer_provider: WriterProvider,
+    finish_barrier: Barrier,
 ) -> None:
-    global _ctx  # ruff: ignore[global-variable-not-assigned]
-    _init_worker(shared, processor, with_finalize=False)
-    writer: DatasetWriter | None = None
+    global _ctx  # ruff: ignore[global-statement]
+    worker_id = shared.next_worker()
+    shared.progress.worker_started()
+    _ctx = WorkerRuntime(
+        shared=shared,
+        worker_id=worker_id,
+        processor=processor,
+        finish_barrier=finish_barrier,
+    )
     try:
-        writer = writer_provider.open_worker(_ctx.worker_id)
-        _ctx.writer = writer
+        _ctx.writer = writer_provider.open_worker(worker_id)
     except Exception:
         _ctx.shared.progress.worker_stopped()
         raise
 
-    def cleanup() -> None:
-        current_writer = _ctx.writer
-        if current_writer is None:
-            return
-        try:
-            current_writer.finish_local()
-        finally:
-            _ctx.shared.progress.worker_stopped()
 
-    _ = Finalize(obj=None, callback=cleanup, exitpriority=10)
+def _finish_write_worker(_task_id: int) -> None:
+    try:
+        if _ctx.writer is not None:
+            _ctx.writer.finish_local()
+    finally:
+        _ctx.writer = None
+        _ctx.shared.progress.worker_stopped()
+        if _ctx.finish_barrier is not None:
+            _ = _ctx.finish_barrier.wait(timeout=300)
