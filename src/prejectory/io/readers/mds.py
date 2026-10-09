@@ -12,12 +12,12 @@ from prejectory.io.base import DatasetReader, IterableDatasetReader, RecordT, sp
 from prejectory.io.encoding.mds import decode_mds_row
 
 try:
-    from streaming import Stream, StreamingDataset
+    from streaming import Stream
     from streaming.base.format.mds.reader import MDSReader as MosaicShardReader
 except ModuleNotFoundError as error:
     raise_missing_optional_dependency(error, feature="The MDS storage reader", extra="mds")
 
-from prejectory.io.readers._mds import PlannedMDSShardReader
+from prejectory.io.readers._mds import MDSStreamingDataset, PlannedMDSShardReader
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping, Sequence
@@ -75,6 +75,11 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
         format. Only useful when customizing the output format; by default, this
         decodes raw MDS rows into `SceneRecord` objects using the standard
         Prejectory MDS encoding scheme.
+    local_iteration : bool, optional
+        Use synchronous iteration for fully resident, uncompressed local
+        streams without a cache limit (default True). Mosaic still controls
+        sampling, shuffling, epoch resumption and worker partitioning. Set False
+        to use its background shard preparation for every stream.
     reader_args : MDSReaderInitArgs, optional
         Additional keyword arguments forwarded to the `StreamingDataset`
         constructor. `batch_size` defaults to 1 for direct iteration; set it to
@@ -89,6 +94,7 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
         split: DatasetSplit | str | None = None,
         streams: Sequence[Stream] | None = None,
         convert_raw: Callable[[Mapping[str, Any]], RecordT] = decode_mds_row,
+        local_iteration: bool = True,
         **reader_args: Unpack[MDSReaderInitArgs],
     ) -> None:
         super().__init__()
@@ -105,19 +111,21 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
             raise ValueError(msg)
 
         if path is not None:
-            self._backend: StreamingDataset = StreamingDataset(
+            self._backend: MDSStreamingDataset = MDSStreamingDataset(
                 local=Path(path).as_posix(),
                 split=split_directory_name(split),
                 **reader_args,
             )
         else:
-            self._backend = StreamingDataset(streams=streams, **reader_args)
+            self._backend = MDSStreamingDataset(streams=streams, **reader_args)
 
         # Replace only standard MDS shards, after Mosaic validates their codecs.
-        # Downloads, eviction, partitioning and iteration remain Mosaic's job.
+        # Downloads, eviction and epoch partitioning remain Mosaic's job.
         for index, shard in enumerate(cast("list[object]", self._backend.shards)):
             if type(shard) is MosaicShardReader:
                 self._backend.shards[index] = PlannedMDSShardReader(shard)
+        if local_iteration:
+            self._backend.enable_local_iteration()
 
     @override
     def __len__(self) -> int:

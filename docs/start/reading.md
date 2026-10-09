@@ -153,6 +153,12 @@ reader = MDSReader(
 sample = next(iter(reader)).forecast()
 ```
 
+Fully resident, uncompressed local MDS streams use synchronous reads while Mosaic
+continues to plan sampling, shuffling, epochs and worker partitions. Remote streams,
+compressed shards and readers with a cache limit retain background shard preparation.
+Pass `local_iteration=False` to `MDSReader` to use background preparation for local
+streams too. Existing exports work without reprocessing.
+
 ## Torch and PyG adapters
 
 On top of the readers, `prejectory` provides optional adapters:

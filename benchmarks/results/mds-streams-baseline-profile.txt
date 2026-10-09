@@ -1,0 +1,58 @@
+         10228976 function calls (10015353 primitive calls) in 10.502 seconds
+
+   Ordered by: cumulative time
+   List reduced from 541 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+14596/14595    0.048    0.000   25.929    0.002 mds.py:126(__iter__)
+14596/14595    0.072    0.000   21.773    0.001 mds.py:128(<genexpr>)
+14596/14595    0.064    0.000   18.055    0.001 dataset.py:1475(__iter__)
+58368/29184    0.172    0.000   14.308    0.000 array.py:78(__getitem__)
+    29184    0.099    0.000   12.393    0.000 dataset.py:1237(get_item)
+    29184    0.136    0.000   11.144    0.000 reader.py:310(get_item)
+      7/6    0.050    0.007   10.249    1.708 benchmark_mds_streams.py:42(_consume)
+    29184    0.195    0.000    8.501    0.000 reader.py:128(get_sample_data)
+      2/1    0.002    0.001    7.668    7.668 benchmark_mds_streams.py:78(_worker)
+    14595    0.009    0.000    2.529    0.000 benchmark_mds_streams.py:112(<genexpr>)
+    14592    0.018    0.000    2.520    0.000 benchmark_mds_streams.py:38(__getitem__)
+    14592    0.015    0.000    2.502    0.000 mds.py:136(__getitem__)
+    10321    0.163    0.000    2.129    0.000 dataset.py:1142(prepare_shard)
+    29184    0.236    0.000    2.064    0.000 mds.py:64(decode_mds_row)
+    29184    0.504    0.000    1.846    0.000 _mds.py:43(decode_sample)
+    10357    0.054    0.000    1.521    0.000 _api.py:1010(acquire)
+    10357    0.036    0.000    1.245    0.000 _api.py:1234(_poll_until_acquired)
+    10357    0.037    0.000    1.140    0.000 _api.py:1306(_acquire_with_fork_tracking)
+   291840    0.401    0.000    1.123    0.000 encodings.py:270(decode)
+479958/417884    0.110    0.000    0.893    0.000 {built-in method builtins.next}
+    29184    0.016    0.000    0.873    0.000 records.py:88(__post_init__)
+    29184    0.080    0.000    0.850    0.000 records.py:200(_validate_full_record)
+    20680    0.060    0.000    0.807    0.000 _api.py:1127(release)
+   124148    0.106    0.000    0.790    0.000 _api.py:1605(_fork_transition)
+    10323    0.057    0.000    0.774    0.000 _api.py:346(__call__)
+    29184    0.322    0.000    0.747    0.000 mds.py:138(_decode_mds_map_arrays)
+    10357    0.012    0.000    0.668    0.000 _unix.py:69(_acquire)
+    10357    0.024    0.000    0.665    0.000 _api.py:1366(_release_with_fork_tracking)
+    10323    0.072    0.000    0.657    0.000 _api.py:457(_create_instance)
+    10357    0.046    0.000    0.655    0.000 _unix.py:74(_acquire_native)
+    29184    0.081    0.000    0.505    0.000 records.py:280(_validate_agent_arrays)
+    72431    0.035    0.000    0.505    0.000 contextlib.py:136(__enter__)
+   145920    0.072    0.000    0.459    0.000 {method 'all' of 'numpy.ndarray' objects}
+    72431    0.041    0.000    0.429    0.000 contextlib.py:145(__exit__)
+    29184    0.047    0.000    0.419    0.000 _arraysetops_impl.py:145(unique)
+   729600    0.417    0.000    0.417    0.000 {built-in method numpy.frombuffer}
+   291862    0.408    0.000    0.408    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+    10357    0.032    0.000    0.403    0.000 _util.py:73(ensure_directory_exists)
+   145920    0.047    0.000    0.387    0.000 _methods.py:68(_all)
+   149728    0.352    0.000    0.352    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+    10357    0.097    0.000    0.350    0.000 _unix.py:137(_finalize_locked_fd)
+    29184    0.232    0.000    0.346    0.000 _arraysetops_impl.py:344(_unique1d)
+    10323    0.042    0.000    0.345    0.000 _api.py:663(__init__)
+    10357    0.012    0.000    0.289    0.000 _api.py:1373(_register_context_descriptor)
+    10357    0.022    0.000    0.277    0.000 _api.py:1636(_register_owned_descriptor)
+    58368    0.269    0.000    0.270    0.000 {method 'read' of '_io.FileIO' objects}
+    10323    0.032    0.000    0.265    0.000 _api.py:1620(_register_fork_object)
+    62074    0.119    0.000    0.265    0.000 _api.py:1749(_leave_fork_transition)
+    10357    0.016    0.000    0.259    0.000 _unix.py:173(_release)
+    54097    0.178    0.000    0.259    0.000 spanner.py:40(__getitem__)
+
+

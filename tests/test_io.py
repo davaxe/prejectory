@@ -365,6 +365,49 @@ def test_mds_reader_combines_streams_with_per_row_prediction_bounds(
     } == {(1, 2), (2, 1)}
 
 
+@pytest.mark.parametrize("adapter", ["torch", "pyg"])
+def test_mds_iterable_adapters_partition_spawned_persistent_workers(
+    tmp_path: Path, scene: Scene, adapter: str
+) -> None:
+    streaming = pytest.importorskip("streaming")
+    torch = pytest.importorskip("torch")
+    from prejectory.io.backends.mds import MDSDatasetWriter
+    from prejectory.io.readers.mds import MDSReader
+
+    if adapter == "pyg":
+        pytest.importorskip("torch_geometric")
+        from prejectory.io.adapters.pyg import IterableHeteroSceneDataset as Adapter
+    else:
+        from prejectory.io.adapters.torch import IterableTorchSceneDataset as Adapter
+
+    roots: list[Path] = []
+    for stream_id in range(3):
+        root = tmp_path / str(stream_id)
+        writer = MDSDatasetWriter(
+            output_dir=root, config=output_config(), splits=None, parallel=False
+        )
+        for index in range(4):
+            writer.write(replace(scene, scene_number=stream_id * 4 + index))
+        writer.finish_local()
+        roots.append(root)
+    reader = MDSReader(
+        streams=[streaming.Stream(local=str(root), split="unsplit") for root in roots],
+        shuffle=True,
+        batch_size=2,
+    )
+    loader = torch.utils.data.DataLoader(
+        Adapter(reader),
+        batch_size=2,
+        num_workers=2,
+        multiprocessing_context="spawn",
+        persistent_workers=True,
+        collate_fn=list,
+    )
+    for _ in range(2):
+        numbers = [int(record.scene_number) for batch in loader for record in batch]
+        assert sorted(numbers) == list(range(12))
+
+
 def test_mds_writer_accepts_transform_with_columns(tmp_path: Path, scene: Scene) -> None:
     pytest.importorskip("streaming")
     scene = replace(scene, dataset="demo")
@@ -700,3 +743,50 @@ def test_pyg_forecast_collate_aligns_history_and_future(tmp_path: Path, scene: S
     assert tuple(batch["agent"].future_features.shape[1:]) == (2, 7)
     assert not bool(batch["agent"].history_mask[:2, 0].any())
     assert not bool(batch["agent"].future_mask[2:, 1].any())
+
+
+@pytest.mark.parametrize("forecast", [False, True])
+def test_pyg_collation_preserves_inputs_and_owns_batch_tensors(
+    tmp_path: Path, scene: Scene, *, forecast: bool
+) -> None:
+    pytest.importorskip("torch_geometric")
+    torch = pytest.importorskip("torch")
+    from torch_geometric.data import HeteroData
+
+    from prejectory.io.adapters.pyg import (
+        HeteroForecastDataset,
+        HeteroSceneDataset,
+        collate_forecast_hetero_with_time_padding,
+        collate_hetero_with_time_padding,
+    )
+
+    reader, _ = _build_pickle_reader(tmp_path, scene, bounds=PredictionBounds(2, 3))
+    if forecast:
+        records = [
+            HeteroForecastDataset(reader, bounds=PredictionBounds(1, 3)).get(0),
+            HeteroForecastDataset(reader, bounds=PredictionBounds(2, 3)).get(0),
+        ]
+        collate = collate_forecast_hetero_with_time_padding
+    else:
+        records = [HeteroSceneDataset(reader).get(0), HeteroSceneDataset(reader).get(0)]
+        records[0]["agent"].features = records[0]["agent"].features[:, :1]
+        records[0]["agent"].valid_mask = records[0]["agent"].valid_mask[:, :1]
+        collate = collate_hetero_with_time_padding
+    originals = [record.clone() for record in records]
+    batch = collate(records)
+    assert isinstance(batch, HeteroData)
+
+    def assert_unchanged() -> None:
+        for record, original in zip(records, originals, strict=True):
+            for store, expected in zip(record.stores, original.stores, strict=True):
+                assert set(store.keys()) == set(expected.keys())
+                for key, value in expected.items():
+                    if isinstance(value, torch.Tensor):
+                        torch.testing.assert_close(store[key], value, equal_nan=True)
+
+    assert_unchanged()
+    for store in batch.stores:
+        for value in store.values():
+            if isinstance(value, torch.Tensor):
+                _ = value.zero_()
+    assert_unchanged()

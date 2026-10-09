@@ -1,0 +1,1894 @@
+{
+  "python": "3.14.3 (main, Mar  3 2026, 14:59:53) [Clang 21.1.4 ]",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "versions": {
+    "numpy": "2.1.3",
+    "zarr": "3.4.0",
+    "mosaicml-streaming": "0.13.0",
+    "torch": "2.14.1",
+    "torch-geometric": "2.8.0.post1"
+  },
+  "results": [
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43"
+      ],
+      "adapter": "native",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 1.890768,
+      "stored_scenes": 3264,
+      "epoch_scenes": 256,
+      "peak_rss_kib": 785836,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.1130302109375,
+            "min": 0.11068043359375,
+            "max": 0.1169304765625,
+            "samples": [
+              0.1130302109375,
+              0.1119219609375,
+              0.11068043359375,
+              0.113364203125,
+              0.1169304765625
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.1130302109375,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1119219609375,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.11068043359375,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.113364203125,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1169304765625,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.30384526171875,
+            "min": 0.275912265625,
+            "max": 0.3886036484375,
+            "samples": [
+              0.30384526171875,
+              0.36253108203125,
+              0.3886036484375,
+              0.299554734375,
+              0.275912265625
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.30384526171875,
+              "count": 256,
+              "checksum": 464249,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.36253108203125,
+              "count": 256,
+              "checksum": 482893,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.3886036484375,
+              "count": 256,
+              "checksum": 511382,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.299554734375,
+              "count": 256,
+              "checksum": 504571,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.275912265625,
+              "count": 256,
+              "checksum": 483937,
+              "datasets": {
+                "0": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43"
+      ],
+      "adapter": "torch",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 2.243258,
+      "stored_scenes": 3264,
+      "epoch_scenes": 256,
+      "peak_rss_kib": 787648,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.16543219921875,
+            "min": 0.1641724453125,
+            "max": 0.1691454609375,
+            "samples": [
+              0.1647155703125,
+              0.1684825234375,
+              0.1691454609375,
+              0.1641724453125,
+              0.16543219921875
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.1647155703125,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1684825234375,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1691454609375,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1641724453125,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.16543219921875,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.4009102109375,
+            "min": 0.3800186796875,
+            "max": 0.46897078515625,
+            "samples": [
+              0.4009102109375,
+              0.46897078515625,
+              0.40664014453125,
+              0.383053625,
+              0.3800186796875
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.4009102109375,
+              "count": 256,
+              "checksum": 464249,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.46897078515625,
+              "count": 256,
+              "checksum": 482893,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.40664014453125,
+              "count": 256,
+              "checksum": 511382,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.383053625,
+              "count": 256,
+              "checksum": 504571,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.3800186796875,
+              "count": 256,
+              "checksum": 483937,
+              "datasets": {
+                "0": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43"
+      ],
+      "adapter": "pyg",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 2.971116,
+      "stored_scenes": 3264,
+      "epoch_scenes": 256,
+      "peak_rss_kib": 858852,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.24446866015625,
+            "min": 0.24310438671875,
+            "max": 0.26327773828125,
+            "samples": [
+              0.244306875,
+              0.24310438671875,
+              0.24446866015625,
+              0.25149995703125,
+              0.26327773828125
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.244306875,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.24310438671875,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.24446866015625,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.25149995703125,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.26327773828125,
+              "count": 256,
+              "checksum": 469274,
+              "datasets": {
+                "0": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.50564330859375,
+            "min": 0.4727549765625,
+            "max": 0.56959601171875,
+            "samples": [
+              0.50564330859375,
+              0.56959601171875,
+              0.50867195703125,
+              0.503924546875,
+              0.4727549765625
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.50564330859375,
+              "count": 256,
+              "checksum": 464249,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.56959601171875,
+              "count": 256,
+              "checksum": 482893,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.50867195703125,
+              "count": 256,
+              "checksum": 511382,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.503924546875,
+              "count": 256,
+              "checksum": 504571,
+              "datasets": {
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4727549765625,
+              "count": 256,
+              "checksum": 483937,
+              "datasets": {
+                "0": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43",
+        "/home/davax/dev/wayfinder/source/data/processed/ad4che",
+        "/home/davax/dev/wayfinder/source/data/processed/apolloscape",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse1"
+      ],
+      "adapter": "native",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 10.707642,
+      "stored_scenes": 229154,
+      "epoch_scenes": 1024,
+      "peak_rss_kib": 792656,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.1226036611328125,
+            "min": 0.1095656572265625,
+            "max": 0.1330305126953125,
+            "samples": [
+              0.1103206787109375,
+              0.1095656572265625,
+              0.1330305126953125,
+              0.1317775322265625,
+              0.1226036611328125
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.1103206787109375,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1095656572265625,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1330305126953125,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1317775322265625,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1226036611328125,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.383884482421875,
+            "min": 0.3684368388671875,
+            "max": 0.4050999716796875,
+            "samples": [
+              0.4050999716796875,
+              0.383884482421875,
+              0.3946595029296875,
+              0.3787718349609375,
+              0.3684368388671875
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.4050999716796875,
+              "count": 1024,
+              "checksum": 1565403447,
+              "datasets": {
+                "1": 256,
+                "3": 256,
+                "2": 256,
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.383884482421875,
+              "count": 1024,
+              "checksum": 1567044369,
+              "datasets": {
+                "3": 256,
+                "1": 256,
+                "2": 256,
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.3946595029296875,
+              "count": 1024,
+              "checksum": 1567280878,
+              "datasets": {
+                "3": 256,
+                "1": 256,
+                "0": 256,
+                "2": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.3787718349609375,
+              "count": 1024,
+              "checksum": 1566701499,
+              "datasets": {
+                "0": 256,
+                "1": 256,
+                "3": 256,
+                "2": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.3684368388671875,
+              "count": 1024,
+              "checksum": 1565425642,
+              "datasets": {
+                "3": 256,
+                "0": 256,
+                "1": 256,
+                "2": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43",
+        "/home/davax/dev/wayfinder/source/data/processed/ad4che",
+        "/home/davax/dev/wayfinder/source/data/processed/apolloscape",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse1"
+      ],
+      "adapter": "torch",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 10.47687,
+      "stored_scenes": 229154,
+      "epoch_scenes": 1024,
+      "peak_rss_kib": 793628,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.15938538671875,
+            "min": 0.157941220703125,
+            "max": 0.1647914794921875,
+            "samples": [
+              0.158545201171875,
+              0.15938538671875,
+              0.1647914794921875,
+              0.162101224609375,
+              0.157941220703125
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.158545201171875,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.15938538671875,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.1647914794921875,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.162101224609375,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.157941220703125,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.412571404296875,
+            "min": 0.3961919375,
+            "max": 0.4577671962890625,
+            "samples": [
+              0.412571404296875,
+              0.3961919375,
+              0.4071398115234375,
+              0.4352123515625,
+              0.4577671962890625
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.412571404296875,
+              "count": 1024,
+              "checksum": 1565403447,
+              "datasets": {
+                "1": 256,
+                "3": 256,
+                "2": 256,
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.3961919375,
+              "count": 1024,
+              "checksum": 1567044369,
+              "datasets": {
+                "3": 256,
+                "1": 256,
+                "2": 256,
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4071398115234375,
+              "count": 1024,
+              "checksum": 1567280878,
+              "datasets": {
+                "3": 256,
+                "1": 256,
+                "0": 256,
+                "2": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4352123515625,
+              "count": 1024,
+              "checksum": 1566701499,
+              "datasets": {
+                "0": 256,
+                "1": 256,
+                "3": 256,
+                "2": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4577671962890625,
+              "count": 1024,
+              "checksum": 1565425642,
+              "datasets": {
+                "3": 256,
+                "0": 256,
+                "1": 256,
+                "2": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43",
+        "/home/davax/dev/wayfinder/source/data/processed/ad4che",
+        "/home/davax/dev/wayfinder/source/data/processed/apolloscape",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse1"
+      ],
+      "adapter": "pyg",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 11.604783,
+      "stored_scenes": 229154,
+      "epoch_scenes": 1024,
+      "peak_rss_kib": 864752,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.2589476474609375,
+            "min": 0.2566310263671875,
+            "max": 0.260922037109375,
+            "samples": [
+              0.26064764453125,
+              0.2589476474609375,
+              0.260922037109375,
+              0.2566310263671875,
+              0.256907880859375
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.26064764453125,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.2589476474609375,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.260922037109375,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.2566310263671875,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.256907880859375,
+              "count": 1024,
+              "checksum": 1566262259,
+              "datasets": {
+                "3": 256,
+                "2": 256,
+                "0": 256,
+                "1": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.5457589970703125,
+            "min": 0.517323248046875,
+            "max": 0.5740660986328125,
+            "samples": [
+              0.517323248046875,
+              0.5740660986328125,
+              0.5457589970703125,
+              0.558638376953125,
+              0.5201177666015625
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.517323248046875,
+              "count": 1024,
+              "checksum": 1565403447,
+              "datasets": {
+                "1": 256,
+                "3": 256,
+                "2": 256,
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5740660986328125,
+              "count": 1024,
+              "checksum": 1567044369,
+              "datasets": {
+                "3": 256,
+                "1": 256,
+                "2": 256,
+                "0": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5457589970703125,
+              "count": 1024,
+              "checksum": 1567280878,
+              "datasets": {
+                "3": 256,
+                "1": 256,
+                "0": 256,
+                "2": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.558638376953125,
+              "count": 1024,
+              "checksum": 1566701499,
+              "datasets": {
+                "0": 256,
+                "1": 256,
+                "3": 256,
+                "2": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5201177666015625,
+              "count": 1024,
+              "checksum": 1565425642,
+              "datasets": {
+                "3": 256,
+                "0": 256,
+                "1": 256,
+                "2": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43",
+        "/home/davax/dev/wayfinder/source/data/processed/ad4che",
+        "/home/davax/dev/wayfinder/source/data/processed/apolloscape",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse1",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse2",
+        "/home/davax/dev/wayfinder/source/data/processed/eth",
+        "/home/davax/dev/wayfinder/source/data/processed/exid",
+        "/home/davax/dev/wayfinder/source/data/processed/highd",
+        "/home/davax/dev/wayfinder/source/data/processed/i80",
+        "/home/davax/dev/wayfinder/source/data/processed/ind",
+        "/home/davax/dev/wayfinder/source/data/processed/interaction",
+        "/home/davax/dev/wayfinder/source/data/processed/nuscenes",
+        "/home/davax/dev/wayfinder/source/data/processed/opendd",
+        "/home/davax/dev/wayfinder/source/data/processed/round",
+        "/home/davax/dev/wayfinder/source/data/processed/sind",
+        "/home/davax/dev/wayfinder/source/data/processed/unid",
+        "/home/davax/dev/wayfinder/source/data/processed/us101",
+        "/home/davax/dev/wayfinder/source/data/processed/vod",
+        "/home/davax/dev/wayfinder/source/data/processed/waymo"
+      ],
+      "adapter": "native",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 80.658863,
+      "stored_scenes": 1215994,
+      "epoch_scenes": 4864,
+      "peak_rss_kib": 812268,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.12009520518092104,
+            "min": 0.11693482195723685,
+            "max": 0.12120160382401315,
+            "samples": [
+              0.12009520518092104,
+              0.11879793688322368,
+              0.12020717084703947,
+              0.12120160382401315,
+              0.11693482195723685
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.12009520518092104,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.11879793688322368,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.12020717084703947,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.12120160382401315,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.11693482195723685,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.4083419157072368,
+            "min": 0.38555927549342106,
+            "max": 0.4330635439967105,
+            "samples": [
+              0.4149736881167763,
+              0.38555927549342106,
+              0.38796703762335527,
+              0.4330635439967105,
+              0.4083419157072368
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.4149736881167763,
+              "count": 4864,
+              "checksum": 57254857413,
+              "datasets": {
+                "4": 256,
+                "11": 256,
+                "22": 256,
+                "10": 256,
+                "18": 256,
+                "5": 256,
+                "14": 256,
+                "1": 256,
+                "13": 256,
+                "16": 256,
+                "20": 256,
+                "3": 256,
+                "19": 256,
+                "0": 256,
+                "15": 256,
+                "2": 256,
+                "17": 256,
+                "12": 256,
+                "21": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.38555927549342106,
+              "count": 4864,
+              "checksum": 57251936465,
+              "datasets": {
+                "10": 256,
+                "4": 256,
+                "0": 256,
+                "16": 256,
+                "15": 256,
+                "17": 256,
+                "18": 256,
+                "1": 256,
+                "11": 256,
+                "5": 256,
+                "14": 256,
+                "19": 256,
+                "13": 256,
+                "2": 256,
+                "12": 256,
+                "21": 256,
+                "3": 256,
+                "20": 256,
+                "22": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.38796703762335527,
+              "count": 4864,
+              "checksum": 57257517839,
+              "datasets": {
+                "3": 256,
+                "16": 256,
+                "11": 256,
+                "1": 256,
+                "4": 256,
+                "18": 256,
+                "20": 256,
+                "15": 256,
+                "17": 256,
+                "13": 256,
+                "10": 256,
+                "22": 256,
+                "21": 256,
+                "19": 256,
+                "5": 256,
+                "2": 256,
+                "14": 256,
+                "0": 256,
+                "12": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4330635439967105,
+              "count": 4864,
+              "checksum": 57255432630,
+              "datasets": {
+                "3": 256,
+                "11": 256,
+                "18": 256,
+                "13": 256,
+                "22": 256,
+                "4": 256,
+                "19": 256,
+                "10": 256,
+                "17": 256,
+                "2": 256,
+                "1": 256,
+                "12": 256,
+                "14": 256,
+                "21": 256,
+                "0": 256,
+                "16": 256,
+                "5": 256,
+                "20": 256,
+                "15": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4083419157072368,
+              "count": 4864,
+              "checksum": 57256454622,
+              "datasets": {
+                "4": 256,
+                "21": 256,
+                "10": 256,
+                "5": 256,
+                "22": 256,
+                "1": 256,
+                "16": 256,
+                "19": 256,
+                "15": 256,
+                "3": 256,
+                "13": 256,
+                "20": 256,
+                "11": 256,
+                "18": 256,
+                "2": 256,
+                "14": 256,
+                "0": 256,
+                "17": 256,
+                "12": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43",
+        "/home/davax/dev/wayfinder/source/data/processed/ad4che",
+        "/home/davax/dev/wayfinder/source/data/processed/apolloscape",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse1",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse2",
+        "/home/davax/dev/wayfinder/source/data/processed/eth",
+        "/home/davax/dev/wayfinder/source/data/processed/exid",
+        "/home/davax/dev/wayfinder/source/data/processed/highd",
+        "/home/davax/dev/wayfinder/source/data/processed/i80",
+        "/home/davax/dev/wayfinder/source/data/processed/ind",
+        "/home/davax/dev/wayfinder/source/data/processed/interaction",
+        "/home/davax/dev/wayfinder/source/data/processed/nuscenes",
+        "/home/davax/dev/wayfinder/source/data/processed/opendd",
+        "/home/davax/dev/wayfinder/source/data/processed/round",
+        "/home/davax/dev/wayfinder/source/data/processed/sind",
+        "/home/davax/dev/wayfinder/source/data/processed/unid",
+        "/home/davax/dev/wayfinder/source/data/processed/us101",
+        "/home/davax/dev/wayfinder/source/data/processed/vod",
+        "/home/davax/dev/wayfinder/source/data/processed/waymo"
+      ],
+      "adapter": "torch",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 81.7042,
+      "stored_scenes": 1215994,
+      "epoch_scenes": 4864,
+      "peak_rss_kib": 812984,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.16546368297697367,
+            "min": 0.16504791344572367,
+            "max": 0.16575158840460527,
+            "samples": [
+              0.1656023865131579,
+              0.16546368297697367,
+              0.16505513774671052,
+              0.16504791344572367,
+              0.16575158840460527
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.1656023865131579,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.16546368297697367,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.16505513774671052,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.16504791344572367,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.16575158840460527,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.4525607798108553,
+            "min": 0.4184017027138158,
+            "max": 0.49558404666940786,
+            "samples": [
+              0.4448021348684211,
+              0.4184017027138158,
+              0.46159301603618424,
+              0.4525607798108553,
+              0.49558404666940786
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.4448021348684211,
+              "count": 4864,
+              "checksum": 57254857413,
+              "datasets": {
+                "4": 256,
+                "11": 256,
+                "22": 256,
+                "10": 256,
+                "18": 256,
+                "5": 256,
+                "14": 256,
+                "1": 256,
+                "13": 256,
+                "16": 256,
+                "20": 256,
+                "3": 256,
+                "19": 256,
+                "0": 256,
+                "15": 256,
+                "2": 256,
+                "17": 256,
+                "12": 256,
+                "21": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4184017027138158,
+              "count": 4864,
+              "checksum": 57251936465,
+              "datasets": {
+                "10": 256,
+                "4": 256,
+                "0": 256,
+                "16": 256,
+                "15": 256,
+                "17": 256,
+                "18": 256,
+                "1": 256,
+                "11": 256,
+                "5": 256,
+                "14": 256,
+                "19": 256,
+                "13": 256,
+                "2": 256,
+                "12": 256,
+                "21": 256,
+                "3": 256,
+                "20": 256,
+                "22": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.46159301603618424,
+              "count": 4864,
+              "checksum": 57257517839,
+              "datasets": {
+                "3": 256,
+                "16": 256,
+                "11": 256,
+                "1": 256,
+                "4": 256,
+                "18": 256,
+                "20": 256,
+                "15": 256,
+                "17": 256,
+                "13": 256,
+                "10": 256,
+                "22": 256,
+                "21": 256,
+                "19": 256,
+                "5": 256,
+                "2": 256,
+                "14": 256,
+                "0": 256,
+                "12": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.4525607798108553,
+              "count": 4864,
+              "checksum": 57255432630,
+              "datasets": {
+                "3": 256,
+                "11": 256,
+                "18": 256,
+                "13": 256,
+                "22": 256,
+                "4": 256,
+                "19": 256,
+                "10": 256,
+                "17": 256,
+                "2": 256,
+                "1": 256,
+                "12": 256,
+                "14": 256,
+                "21": 256,
+                "0": 256,
+                "16": 256,
+                "5": 256,
+                "20": 256,
+                "15": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.49558404666940786,
+              "count": 4864,
+              "checksum": 57256454622,
+              "datasets": {
+                "4": 256,
+                "21": 256,
+                "10": 256,
+                "5": 256,
+                "22": 256,
+                "1": 256,
+                "16": 256,
+                "19": 256,
+                "15": 256,
+                "3": 256,
+                "13": 256,
+                "20": 256,
+                "11": 256,
+                "18": 256,
+                "2": 256,
+                "14": 256,
+                "0": 256,
+                "17": 256,
+                "12": 256
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "paths": [
+        "/home/davax/dev/wayfinder/source/data/processed/a43",
+        "/home/davax/dev/wayfinder/source/data/processed/ad4che",
+        "/home/davax/dev/wayfinder/source/data/processed/apolloscape",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse1",
+        "/home/davax/dev/wayfinder/source/data/processed/argoverse2",
+        "/home/davax/dev/wayfinder/source/data/processed/eth",
+        "/home/davax/dev/wayfinder/source/data/processed/exid",
+        "/home/davax/dev/wayfinder/source/data/processed/highd",
+        "/home/davax/dev/wayfinder/source/data/processed/i80",
+        "/home/davax/dev/wayfinder/source/data/processed/ind",
+        "/home/davax/dev/wayfinder/source/data/processed/interaction",
+        "/home/davax/dev/wayfinder/source/data/processed/nuscenes",
+        "/home/davax/dev/wayfinder/source/data/processed/opendd",
+        "/home/davax/dev/wayfinder/source/data/processed/round",
+        "/home/davax/dev/wayfinder/source/data/processed/sind",
+        "/home/davax/dev/wayfinder/source/data/processed/unid",
+        "/home/davax/dev/wayfinder/source/data/processed/us101",
+        "/home/davax/dev/wayfinder/source/data/processed/vod",
+        "/home/davax/dev/wayfinder/source/data/processed/waymo"
+      ],
+      "adapter": "pyg",
+      "view": "full",
+      "split": "train",
+      "per_stream": 256,
+      "repeats": 5,
+      "batch_size": 8,
+      "workers": null,
+      "shuffle": true,
+      "seed": 12345,
+      "open_ms": 82.287583,
+      "stored_scenes": 1215994,
+      "epoch_scenes": 4864,
+      "peak_rss_kib": 884028,
+      "results": {
+        "random": {
+          "ms_per_scene": {
+            "median": 0.2618411587171052,
+            "min": 0.2575324457236842,
+            "max": 0.2712326151315789,
+            "samples": [
+              0.2575324457236842,
+              0.25887873745888157,
+              0.2621598353207237,
+              0.2618411587171052,
+              0.2712326151315789
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.2575324457236842,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.25887873745888157,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.2621598353207237,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.2618411587171052,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.2712326151315789,
+              "count": 4864,
+              "checksum": 57257109063,
+              "datasets": {
+                "2": 256,
+                "3": 256,
+                "14": 256,
+                "18": 256,
+                "19": 256,
+                "21": 256,
+                "5": 256,
+                "1": 256,
+                "10": 256,
+                "22": 256,
+                "11": 256,
+                "17": 256,
+                "15": 256,
+                "4": 256,
+                "12": 256,
+                "16": 256,
+                "0": 256,
+                "20": 256,
+                "13": 256
+              }
+            }
+          ]
+        },
+        "iterate": {
+          "ms_per_scene": {
+            "median": 0.5372964802631579,
+            "min": 0.5294809523026316,
+            "max": 0.5589898044819079,
+            "samples": [
+              0.5505444171463816,
+              0.5294809523026316,
+              0.5589898044819079,
+              0.5372964802631579,
+              0.5370942748766447
+            ]
+          },
+          "passes": [
+            {
+              "ms_per_scene": 0.5505444171463816,
+              "count": 4864,
+              "checksum": 57254857413,
+              "datasets": {
+                "4": 256,
+                "11": 256,
+                "22": 256,
+                "10": 256,
+                "18": 256,
+                "5": 256,
+                "14": 256,
+                "1": 256,
+                "13": 256,
+                "16": 256,
+                "20": 256,
+                "3": 256,
+                "19": 256,
+                "0": 256,
+                "15": 256,
+                "2": 256,
+                "17": 256,
+                "12": 256,
+                "21": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5294809523026316,
+              "count": 4864,
+              "checksum": 57251936465,
+              "datasets": {
+                "10": 256,
+                "4": 256,
+                "0": 256,
+                "16": 256,
+                "15": 256,
+                "17": 256,
+                "18": 256,
+                "1": 256,
+                "11": 256,
+                "5": 256,
+                "14": 256,
+                "19": 256,
+                "13": 256,
+                "2": 256,
+                "12": 256,
+                "21": 256,
+                "3": 256,
+                "20": 256,
+                "22": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5589898044819079,
+              "count": 4864,
+              "checksum": 57257517839,
+              "datasets": {
+                "3": 256,
+                "16": 256,
+                "11": 256,
+                "1": 256,
+                "4": 256,
+                "18": 256,
+                "20": 256,
+                "15": 256,
+                "17": 256,
+                "13": 256,
+                "10": 256,
+                "22": 256,
+                "21": 256,
+                "19": 256,
+                "5": 256,
+                "2": 256,
+                "14": 256,
+                "0": 256,
+                "12": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5372964802631579,
+              "count": 4864,
+              "checksum": 57255432630,
+              "datasets": {
+                "3": 256,
+                "11": 256,
+                "18": 256,
+                "13": 256,
+                "22": 256,
+                "4": 256,
+                "19": 256,
+                "10": 256,
+                "17": 256,
+                "2": 256,
+                "1": 256,
+                "12": 256,
+                "14": 256,
+                "21": 256,
+                "0": 256,
+                "16": 256,
+                "5": 256,
+                "20": 256,
+                "15": 256
+              }
+            },
+            {
+              "ms_per_scene": 0.5370942748766447,
+              "count": 4864,
+              "checksum": 57256454622,
+              "datasets": {
+                "4": 256,
+                "21": 256,
+                "10": 256,
+                "5": 256,
+                "22": 256,
+                "1": 256,
+                "16": 256,
+                "19": 256,
+                "15": 256,
+                "3": 256,
+                "13": 256,
+                "20": 256,
+                "11": 256,
+                "18": 256,
+                "2": 256,
+                "14": 256,
+                "0": 256,
+                "17": 256,
+                "12": 256
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
