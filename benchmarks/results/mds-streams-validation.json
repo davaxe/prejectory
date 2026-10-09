@@ -1,8 +1,0 @@
-{
-  "validated_scenes": 2432,
-  "datasets": 19,
-  "raw_bytes_match_mosaic": true,
-  "columns_match_including_dtype_shape_writability": true,
-  "sampled_offset_cache_bytes": 2316056,
-  "maximum_offset_cache_bytes": 4870496
-}

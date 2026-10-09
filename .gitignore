@@ -10,7 +10,8 @@ wandb/
 /saved_models/
 media/
 .VisualStudioCode
-benchmarks
+/benchmarks/
+.benchmarks/
 ### Apptainer ###
 *.sif
 ### Slurm ###

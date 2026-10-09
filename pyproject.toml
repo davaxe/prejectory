@@ -59,6 +59,7 @@ cli = ["typer>=0.24.1"]
 test = [
     "coverage>=7.13.5",
     "pytest>=7.0",
+    "pytest-benchmark[histogram]>=5.1",
 ]
 
 lint = [
@@ -101,6 +102,7 @@ python_functions = ["test_*"]
 addopts = ["-ra", "-q"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "performance: synthetic storage and DataLoader benchmarks",
     "dataset(name): marks tests that require a specific dataset (deselect with '-m \"not dataset\"')",
 ]
 filterwarnings = [
