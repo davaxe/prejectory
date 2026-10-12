@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig
 from prejectory.datasets.apolloscape.loader import ApolloScapeLoader
 from prejectory.datasets.registry import DatasetDescriptor, DatasetSplitSupport

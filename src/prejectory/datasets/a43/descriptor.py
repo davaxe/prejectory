@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig, FullMapExtraction, MapConfig
 from prejectory.datasets.a43.loader import A43Loader
 from prejectory.datasets.a43.maps import A43MapProvider

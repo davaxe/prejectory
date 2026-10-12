@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig, FullMapExtraction, MapConfig
 from prejectory.datasets.registry import (
     DatasetDescriptor,

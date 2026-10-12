@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig
 from prejectory.core.categories import DatasetSplit
 from prejectory.datasets.eth_ucy.loader import EthUcyLoader

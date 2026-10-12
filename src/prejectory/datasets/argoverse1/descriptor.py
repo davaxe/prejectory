@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig, MapConfig, TrajectoryBufferExtraction
 from prejectory.core.categories import DatasetSplit
 from prejectory.datasets.argoverse1.loader import Argoverse1Loader, Argoverse1LoaderOptions

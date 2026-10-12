@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig, MapConfig, TrajectoryBufferExtraction
 from prejectory.core.categories import DatasetSplit
 from prejectory.datasets.nuscenes.loader import NuScenesLoader, NuScenesLoaderOptions
