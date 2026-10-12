@@ -24,7 +24,6 @@ from prejectory.runtime.types import (
     ExecutionPlan,
     ExecutionRequest,
     ExecutionResult,
-    OutputTransform,
 )
 
 __all__ = [
@@ -35,7 +34,6 @@ __all__ = [
     "ExecutionRequest",
     "ExecutionResult",
     "ExecutionStats",
-    "OutputTransform",
     "Progress",
     "ScreeningProgress",
     "SplitCounts",

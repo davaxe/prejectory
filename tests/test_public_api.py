@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pytest
+from typing_extensions import override
 
 from prejectory import ExecutionRequest, open_dataset, plan, run
 from prejectory.config import (
@@ -30,14 +31,16 @@ from prejectory.config import (
 )
 from prejectory.core.errors import ConfigurationError, MissingPredictionBoundsError
 from prejectory.io import PredictionBounds, SceneRecord, read_manifest, write_manifest
+from prejectory.io.base import DatasetWriter, WorkerWriterProvider
 from prejectory.io.readers import PickleReader
-from prejectory.runtime import OutputTransform, Progress
 from tests.support import demo_descriptor
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from prejectory.core.scene import Scene
     from prejectory.datasets import DatasetDescriptor
+    from prejectory.runtime import ExecutionPlan, Progress
 
 
 def _lookup(descriptor: DatasetDescriptor) -> Callable[[str], DatasetDescriptor]:
@@ -179,43 +182,43 @@ def test_reader_errors_distinguish_missing_and_empty(run_request: ExecutionReque
         _ = open_dataset(result.output_dir)
 
 
-def custom_record(record: SceneRecord) -> dict[str, int]:
-    return {"number": record.scene_number}
-
-
-def fail_record(record: SceneRecord) -> dict[str, int]:
-    _ = record
-    msg = "transform failed"
-    raise RuntimeError(msg)
-
-
-@pytest.mark.parametrize("backend", ["pickle", "mds"])
-def test_custom_payload_requires_explicit_decoder(
-    run_request: ExecutionRequest, backend: str
+@pytest.mark.parametrize(
+    ("payload_format", "payload_version"), [("example.number", 1), ("prejectory.scene", 2)]
+)
+def test_open_dataset_rejects_unsupported_payload(
+    run_request: ExecutionRequest, payload_format: str, payload_version: int
 ) -> None:
-    if backend == "mds":
-        pytest.importorskip("streaming")
-    transform = OutputTransform(
-        record_transform=custom_record,
-        format_id="example.number",
-        format_version=2,
-        mds_columns={"number": "int"} if backend == "mds" else None,
-    )
-    result = run(
-        run_request.model_copy(update={"storage_backend": backend, "output_transform": transform})
-    )
+    result = run(run_request)
     manifest = read_manifest(result.output_dir)
-    assert (manifest.payload_format, manifest.payload_version) == ("example.number", 2)
-    with pytest.raises(ConfigurationError, match="explicit decoder"):
+    write_manifest(
+        result.output_dir,
+        replace(manifest, payload_format=payload_format, payload_version=payload_version),
+    )
+    with pytest.raises(ConfigurationError, match="is unsupported"):
         _ = open_dataset(result.output_dir)
-    numbers = open_dataset(result.output_dir, decoder=lambda raw: int(raw["number"]))
-    assert list(numbers) == [0]
-    assert numbers[0] == 0
+
+
+class _FailingWriter(DatasetWriter):
+    @override
+    def write(self, scene: Scene) -> None:
+        _ = scene
+        msg = "write failed"
+        raise RuntimeError(msg)
+
+
+def _create_failing_writer(worker_id: int) -> _FailingWriter:
+    _ = worker_id
+    return _FailingWriter()
+
+
+def _failing_writer_provider(plan: ExecutionPlan) -> WorkerWriterProvider:
+    _ = plan
+    return WorkerWriterProvider(create_worker=_create_failing_writer)
 
 
 @pytest.mark.parametrize("jobs", [1, 2])
 def test_failed_replacement_preserves_previous_output(
-    run_request: ExecutionRequest, jobs: int
+    run_request: ExecutionRequest, jobs: int, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     first = run(run_request)
     before = read_manifest(first.output_dir)
@@ -223,46 +226,17 @@ def test_failed_replacement_preserves_previous_output(
         update={
             "overwrite": True,
             "overrides": DatasetConfigPatch(runtime=RuntimePatch(jobs=jobs)),
-            "output_transform": OutputTransform(
-                record_transform=fail_record, format_id="example.failure"
-            ),
         }
     )
-    with pytest.raises(RuntimeError, match="transform failed"):
+    monkeypatch.setattr(
+        "prejectory.runtime.api.build_writer_provider",
+        _failing_writer_provider,
+    )
+    with pytest.raises(RuntimeError, match="write failed"):
         _ = run(failed)
     assert read_manifest(first.output_dir) == before
     assert len(open_dataset(first.output_dir)) == 1
     assert not list(first.output_dir.parent.glob(f".{first.output_dir.name}-*"))
-
-
-def test_invalid_mds_transform_fails_during_plan(run_request: ExecutionRequest) -> None:
-    invalid = run_request.model_copy(
-        update={
-            "storage_backend": "mds",
-            "output_transform": OutputTransform(
-                record_transform=custom_record, format_id="example.number"
-            ),
-        }
-    )
-    with pytest.raises(ConfigurationError, match="mds_columns"):
-        _ = plan(invalid)
-    assert not run_request.output_dir.exists()
-
-
-def test_zarr_rejects_custom_payload_during_plan(run_request: ExecutionRequest) -> None:
-    pytest.importorskip("zarr")
-    invalid = run_request.model_copy(
-        update={
-            "storage_backend": "zarr",
-            "output_transform": OutputTransform(
-                record_transform=custom_record,
-                format_id="example.number",
-            ),
-        }
-    )
-    with pytest.raises(ConfigurationError, match="canonical SceneRecord"):
-        _ = plan(invalid)
-    assert not run_request.output_dir.exists()
 
 
 def test_parallel_zarr_export_is_readable(run_request: ExecutionRequest) -> None:

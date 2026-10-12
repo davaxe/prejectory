@@ -1,4 +1,4 @@
-# ruff: file-ignore[import-outside-top-level]
+# ruff: file-ignore[import-outside-top-level, private-member-access]
 # pyright: reportPrivateUsage=false
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ def test_planned_mds_decoder_matches_mosaic(
                 "json": {"index": index},
             }
             writer.write({name: row[name] for name in columns})
-    reader: MDSReader[dict[str, Any]] = MDSReader(path=tmp_path, convert_raw=dict)
+    reader = MDSReader(path=tmp_path)._backend
     # Access through StreamingDataset also checks compressed shard preparation.
     rows = reader[:]
     index = json.loads((tmp_path / "unsplit" / "index.json").read_text())
@@ -135,9 +135,8 @@ def test_sample_offset_cache_keeps_missing_file_retry(tmp_path: Path) -> None:
         streams=[
             streaming.Stream(remote=str(remote), local=str(tmp_path / "cache"), split="unsplit")
         ],
-        convert_raw=dict,
-    )
+    )._backend
     assert reader[0] == {"integer": 0}
-    reader._backend.evict_shard(0)  # ruff: ignore[private-member-access]
+    reader.evict_shard(0)
     assert reader[2] == {"integer": 2}
     assert [row["integer"] for row in reader] == [0, 1, 2]

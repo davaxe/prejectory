@@ -27,9 +27,8 @@ from prejectory.datasets.registry import _REGISTRY, dataset_names_by_id
 from prejectory.io import PredictionBounds, StorageBackend, read_manifest
 from prejectory.io.backends.null import NullWriter
 from prejectory.io.base import WorkerWriterProvider
-from prejectory.io.readers import PickleReader
 from prejectory.processing.screening.agent import AgentRequireFrames
-from prejectory.runtime import ExecutionRequest, OutputTransform, execute_request, resolve_request
+from prejectory.runtime import ExecutionRequest, execute_request, resolve_request
 from prejectory.runtime.executor import open_executor
 from prejectory.runtime.processor import RuntimeProcessor
 from tests.support import (
@@ -44,7 +43,6 @@ if TYPE_CHECKING:
 
     from prejectory.core.scene import Scene
     from prejectory.datasets import DatasetDescriptor
-    from prejectory.io.records import SceneRecord
 
 
 def _request(tmp_path: Path, **kwargs: object) -> ExecutionRequest:
@@ -455,64 +453,6 @@ prediction_end = 30
     rule = endpoint.agents["prediction_history_endpoint"]
     assert isinstance(rule, AgentRequireFrames)
     assert rule.frames == frozenset({9})
-
-
-def test_execute_request_applies_record_transform(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _patch_get_demo_descriptor(monkeypatch)
-
-    def transform(record: SceneRecord) -> dict[str, object]:
-        return {
-            "scene_number": record.scene_number,
-            "dataset_id": record.dataset_id,
-            "feature_shape": record.features.shape,
-        }
-
-    output_transform = OutputTransform(format_id="test.custom", record_transform=transform)
-    request = _request(
-        tmp_path,
-        storage_backend=StorageBackend.PICKLE,
-        output_transform=output_transform,
-    )
-
-    result = execute_request(request)
-    record = cast("dict[str, object]", PickleReader(result.output_dir, record_type=dict)[0])
-
-    assert record == {"scene_number": 0, "dataset_id": None, "feature_shape": (1, 3, 7)}
-
-
-def test_execute_request_writes_custom_mds(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    pytest.importorskip(
-        "streaming",
-        reason="Requires streaming package for custom MDS output record format",
-    )
-    from prejectory.io.readers import MDSReader  # ruff: ignore[import-outside-top-level]
-
-    _patch_get_demo_descriptor(monkeypatch)
-
-    def transform(record: SceneRecord) -> dict[str, object]:
-        return {
-            "scene_number": record.scene_number,
-            "dataset_id": -1 if record.dataset_id is None else record.dataset_id,
-            "feature_shape": record.features.shape,
-        }
-
-    output_transform = OutputTransform(
-        format_id="test.custom",
-        record_transform=transform,
-        mds_columns={"scene_number": "int", "dataset_id": "int", "feature_shape": "json"},
-    )
-    request = _request(
-        tmp_path,
-        storage_backend=StorageBackend.MDS,
-        output_transform=output_transform,
-    )
-    result = execute_request(request)
-    reader = MDSReader(path=result.output_dir, convert_raw=dict)
-    record = reader[0]
-    assert record == {"scene_number": 0, "dataset_id": -1, "feature_shape": [1, 3, 7]}
 
 
 def test_parallel_execution_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

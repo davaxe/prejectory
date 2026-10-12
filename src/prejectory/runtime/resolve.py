@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import prejectory.core.errors as prejectory_exceptions
@@ -32,7 +31,7 @@ from prejectory.runtime.types import (
 
 if TYPE_CHECKING:
     from prejectory.datasets.registry import DatasetDescriptor
-    from prejectory.runtime.types import ExecutionRequest, OutputTransform
+    from prejectory.runtime.types import ExecutionRequest
 
 
 logger = logging.getLogger(__name__)
@@ -48,7 +47,7 @@ def build_execution_plan(
     _validate_output_path(request)
     include_map = request.include_map
     storage_backend = _resolve_storage_backend(request.storage_backend)
-    validate_output_options(storage_backend, request.output_transform)
+    validate_backend_dependencies(storage_backend)
     resolved_config, selected_task = _resolve_dataset_config(
         descriptor=descriptor,
         request=request,
@@ -89,16 +88,6 @@ def build_execution_plan(
         if effective_prediction_bounds is None
         else PredictionBounds(*effective_prediction_bounds),
         effective_sample_time=effective_sample_time,
-        output_transform=(
-            None
-            if request.output_transform is None
-            else replace(
-                request.output_transform,
-                mds_columns=None
-                if request.output_transform.mds_columns is None
-                else dict(request.output_transform.mds_columns),
-            )
-        ),
         limit=request.limit,
         seed=request.seed,
         overwrite=request.overwrite,
@@ -266,28 +255,13 @@ def _resolve_dataset_config(
     return config, selected_task
 
 
-def validate_output_options(
-    backend: StorageBackend,
-    transform: OutputTransform[object] | None,
-) -> None:
-    """Check backend dependencies and transform contracts before writing anything."""
+def validate_backend_dependencies(backend: StorageBackend) -> None:
+    """Check optional backend dependencies before writing anything."""
     if backend == StorageBackend.MDS:
-        if transform is not None and not transform.mds_columns:
-            msg = "Custom MDS transforms require `mds_columns`."
-            raise prejectory_exceptions.ConfigurationError(msg)
         from prejectory.io.backends.mds import MDSDatasetWriter  # ruff: ignore[import-outside-top-level]
 
         _ = MDSDatasetWriter
     elif backend == StorageBackend.ZARR:
-        if transform is not None:
-            msg = "The Zarr backend only supports the canonical SceneRecord payload."
-            raise prejectory_exceptions.ConfigurationError(msg)
         from prejectory.io.backends.zarr import ZarrDatasetWriter  # ruff: ignore[import-outside-top-level]
 
         _ = ZarrDatasetWriter
-    elif transform is not None and transform.mds_columns is not None:
-        msg = "mds_columns is only supported by the MDS backend."
-        raise prejectory_exceptions.ConfigurationError(msg)
-    if backend == StorageBackend.NULL and transform is not None:
-        msg = "The null backend does not support output transforms."
-        raise prejectory_exceptions.ConfigurationError(msg)

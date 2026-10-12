@@ -17,7 +17,7 @@ from prejectory.io.base import split_directory_name
 from prejectory.io.manifest import write_manifest
 from prejectory.runtime.executor import open_executor
 from prejectory.runtime.observer import observe_execution
-from prejectory.runtime.resolve import build_execution_plan, validate_output_options
+from prejectory.runtime.resolve import build_execution_plan, validate_backend_dependencies
 from prejectory.runtime.state import split_key
 from prejectory.runtime.types import ExecutionPlan, ExecutionRequest, ExecutionResult
 
@@ -65,7 +65,7 @@ def execute_plan(
     is complete. Publication uses same-filesystem renames with rollback if the
     final rename fails; it is not a crash-atomic directory exchange.
     """
-    validate_output_options(plan.storage_backend, plan.output_transform)
+    validate_backend_dependencies(plan.storage_backend)
     _check_output_directory(plan.output_dir, overwrite=plan.overwrite)
     start = time.perf_counter()
     plan.output_dir.parent.mkdir(parents=True, exist_ok=True)

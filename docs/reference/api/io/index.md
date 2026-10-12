@@ -24,7 +24,3 @@
 ## ::: prejectory.io.open_dataset
 
 ## ::: prejectory.io.OpenedDataset
-
-## ::: prejectory.io.RecordTransform
-
-## ::: prejectory.io.SceneTransform

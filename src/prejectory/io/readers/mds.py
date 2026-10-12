@@ -8,8 +8,9 @@ from typing import TYPE_CHECKING, Any, cast, overload
 from typing_extensions import TypedDict, Unpack, override
 
 from prejectory.core.optional import raise_missing_optional_dependency
-from prejectory.io.base import DatasetReader, IterableDatasetReader, RecordT, split_directory_name
+from prejectory.io.base import DatasetReader, IterableDatasetReader, split_directory_name
 from prejectory.io.encoding.mds import decode_mds_row
+from prejectory.io.records import SceneRecord
 
 try:
     from streaming import Stream
@@ -20,7 +21,7 @@ except ModuleNotFoundError as error:
 from prejectory.io.readers._mds import MDSStreamingDataset, PlannedMDSShardReader
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Mapping, Sequence
+    from collections.abc import Iterator, Mapping, Sequence
 
     import numpy as np
     import numpy.typing as npt
@@ -56,7 +57,7 @@ class MDSReaderInitArgs(TypedDict, total=False):
     stream_config: dict[str, Any]
 
 
-class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
+class MDSReader(IterableDatasetReader[SceneRecord], DatasetReader[SceneRecord]):
     """Read raw scene records from an MDS dataset split.
 
     Parameters
@@ -70,11 +71,6 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
     streams : Sequence[Stream], optional
         Pre-configured MDS `Stream` objects to read from. If not provided, the
         path and split arguments will be used to construct a `StreamingDataset`.
-    convert_raw : Callable[[dict[str, Any]], RecordT], optional
-        Function to convert raw MDS rows into the desired output
-        format. Only useful when customizing the output format; by default, this
-        decodes raw MDS rows into `SceneRecord` objects using the standard
-        Prejectory MDS encoding scheme.
     local_iteration : bool, optional
         Use synchronous iteration for fully resident, uncompressed local
         streams without a cache limit (default True). Mosaic still controls
@@ -93,7 +89,6 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
         path: str | Path | None = None,
         split: DatasetSplit | str | None = None,
         streams: Sequence[Stream] | None = None,
-        convert_raw: Callable[[Mapping[str, Any]], RecordT] = decode_mds_row,
         local_iteration: bool = True,
         **reader_args: Unpack[MDSReaderInitArgs],
     ) -> None:
@@ -102,7 +97,6 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
         # A batch size of one otherwise shrinks Mosaic's default window to
         # eight samples, repeatedly starving its background preparation thread.
         _ = reader_args.setdefault("predownload", max(64, 8 * batch_size))
-        self._convert_record: Callable[[Mapping[str, Any]], RecordT] = convert_raw
         if path is not None and streams is not None:
             msg = "Provide either path or streams, not both."
             raise ValueError(msg)
@@ -132,20 +126,20 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
         return len(self._backend)
 
     @override
-    def __iter__(self) -> Iterator[RecordT]:
-        yield from (self._convert_record(record) for record in self._backend)
+    def __iter__(self) -> Iterator[SceneRecord]:
+        yield from (decode_mds_row(record) for record in self._backend)
 
     @overload
-    def __getitem__(self, at: int) -> RecordT: ...
+    def __getitem__(self, at: int) -> SceneRecord: ...
 
     @overload
-    def __getitem__(self, at: list[int] | npt.NDArray[np.int64] | slice) -> list[RecordT]: ...
+    def __getitem__(self, at: list[int] | npt.NDArray[np.int64] | slice) -> list[SceneRecord]: ...
 
     @override
     def __getitem__(
         self,
         at: int | slice | list[int] | npt.NDArray[np.int64],
-    ) -> RecordT | list[RecordT]:
+    ) -> SceneRecord | list[SceneRecord]:
         """Return one or more decoded scene records.
 
         This will implicitly raise error if the specified index or indices are
@@ -158,11 +152,11 @@ class MDSReader(IterableDatasetReader[RecordT], DatasetReader[RecordT]):
 
         Returns
         -------
-        RecordT or list of RecordT
+        SceneRecord or list of SceneRecord
             The decoded scene record(s) at the specified index or indices.
 
         """
         out: Mapping[str, Any] | list[Mapping[str, Any]] = self._backend[at]
         if isinstance(out, list):
-            return [self._convert_record(record) for record in out]
-        return self._convert_record(out)
+            return [decode_mds_row(record) for record in out]
+        return decode_mds_row(out)

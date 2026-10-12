@@ -26,8 +26,8 @@
 - Manifest format is now **3**, with payload ID/version and available split counts.
   Regenerate existing exports: older manifests and renamed pickle record layouts are not
   compatible. MDS retains the physical `mask` column while exposing `valid_mask` in Python.
-- Custom `OutputTransform` requires `format_id` and a transform; readers require an explicit
-  decoder. Custom MDS output also requires columns, validated during planning.
+- Built-in backends write canonical `SceneRecord` data. Custom output transforms, payload
+  formats, and reader decoders are no longer supported.
 
 ## v2.0.0 - June 2026
 

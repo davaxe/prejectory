@@ -1,7 +1,7 @@
 # ruff: file-ignore[import-outside-top-level]
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
@@ -25,14 +25,6 @@ if TYPE_CHECKING:
 
     from prejectory.core.scene import Scene
     from prejectory.io.records import SceneRecord
-
-
-@dataclass(slots=True)
-class CustomPickleRecord:
-    scene_number: int
-    dataset: object
-    values: npt.NDArray[Any]
-    source: str
 
 
 def test_split_scene_record_rejects_bad_bounds(scene: Scene) -> None:
@@ -71,76 +63,6 @@ def test_pickle_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
     reader = PickleReader(output_dir)
     assert len(reader) == 1
     assert_scene_record_equal(reader[0], expected)
-
-
-def test_pickle_writer_accepts_record_transform(tmp_path: Path, scene: Scene) -> None:
-    scene = replace(scene, dataset="demo")
-    output_dir = tmp_path / "pickle"
-
-    def transform(record: SceneRecord) -> CustomPickleRecord:
-        return CustomPickleRecord(
-            scene_number=record.scene_number,
-            dataset=record.dataset_id,
-            values=record.features[:, :1, 0],
-            source="record",
-        )
-
-    writer = PickleWriter(
-        output_dir=output_dir,
-        config=output_config(),
-        splits=None,
-        record_transform=transform,
-    )
-    writer.write(scene)
-    writer.finish_local()
-
-    reader = PickleReader(output_dir, record_type=CustomPickleRecord)
-    record = reader[0]
-
-    assert record.scene_number == scene.scene_number
-    assert record.dataset is None
-    assert record.source == "record"
-    assert record.values.shape == (2, 1)
-
-
-def test_pickle_writer_accepts_scene_transform(tmp_path: Path, scene: Scene) -> None:
-    scene = replace(scene, dataset="demo")
-    output_dir = tmp_path / "pickle"
-
-    def transform(scene: Scene) -> CustomPickleRecord:
-        return CustomPickleRecord(
-            scene_number=scene.scene_number,
-            dataset=scene.dataset,
-            values=np.array([scene.horizon_frames], dtype=np.int32),
-            source="scene",
-        )
-
-    writer = PickleWriter(
-        output_dir=output_dir,
-        config=output_config(),
-        splits=None,
-        scene_transform=transform,
-    )
-    writer.write(scene)
-    writer.finish_local()
-
-    record = PickleReader(output_dir, record_type=CustomPickleRecord)[0]
-
-    assert record.scene_number == scene.scene_number
-    assert record.dataset == "demo"
-    assert record.source == "scene"
-    np.testing.assert_array_equal(record.values, np.array([scene.horizon_frames], dtype=np.int32))
-
-
-def test_pickle_writer_rejects_multiple_transforms(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="record_transform"):
-        _ = PickleWriter(
-            output_dir=tmp_path,
-            config=output_config(),
-            splits=None,
-            record_transform=lambda record: record,
-            scene_transform=lambda scene: scene,
-        )
 
 
 @pytest.mark.parametrize("predownload", [None, 16])
@@ -406,68 +328,6 @@ def test_mds_iterable_adapters_partition_spawned_persistent_workers(
     for _ in range(2):
         numbers = [int(record.scene_number) for batch in loader for record in batch]
         assert sorted(numbers) == list(range(12))
-
-
-def test_mds_writer_accepts_transform_with_columns(tmp_path: Path, scene: Scene) -> None:
-    pytest.importorskip("streaming")
-    scene = replace(scene, dataset="demo")
-
-    from prejectory.io.backends.mds import MDSDatasetWriter
-    from prejectory.io.readers import MDSReader
-
-    def transform(record: SceneRecord) -> dict[str, Any]:
-        observation_length = 1
-        return {
-            "scene_number": int(record.scene_number),
-            "history": record.features[:, :observation_length],
-            "future": record.features[:, observation_length:],
-            "history_mask": record.valid_mask[:, :observation_length].astype(np.uint8, copy=False),
-            "future_mask": record.valid_mask[:, observation_length:].astype(np.uint8, copy=False),
-        }
-
-    columns = {
-        "scene_number": "int",
-        "history": "ndarray:float32",
-        "future": "ndarray:float32",
-        "history_mask": "ndarray:uint8",
-        "future_mask": "ndarray:uint8",
-    }
-    output_dir = tmp_path / "mds"
-    writer = MDSDatasetWriter(
-        output_dir=output_dir,
-        config=output_config(),
-        splits=None,
-        parallel=False,
-        record_transform=transform,
-        mds_columns=columns,
-    )
-    writer.write(scene)
-    writer.finish_local()
-    writer.finish_final()
-
-    raw = MDSReader(path=output_dir, convert_raw=lambda record: record)[0]
-    expected = encode_scene_record(scene, dtype=np.float32)
-
-    assert int(raw["scene_number"]) == scene.scene_number
-    np.testing.assert_allclose(raw["history"], expected.features[:, :1])
-    np.testing.assert_allclose(raw["future"], expected.features[:, 1:])
-    np.testing.assert_array_equal(raw["history_mask"], expected.valid_mask[:, :1].astype(np.uint8))
-    np.testing.assert_array_equal(raw["future_mask"], expected.valid_mask[:, 1:].astype(np.uint8))
-
-
-def test_mds_writer_requires_columns_for_custom_transform(tmp_path: Path) -> None:
-    pytest.importorskip("streaming")
-
-    from prejectory.io.backends.mds import MDSDatasetWriter
-
-    with pytest.raises(ValueError, match="mds_columns"):
-        _ = MDSDatasetWriter(
-            output_dir=tmp_path,
-            config=output_config(),
-            splits=None,
-            parallel=False,
-            record_transform=lambda record: {"scene_number": record.scene_number},
-        )
 
 
 def test_mds_encoder_decoder_roundtrip(scene: Scene) -> None:

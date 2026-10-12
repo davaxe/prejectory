@@ -43,9 +43,8 @@ def test_local_epochs_match_mosaic(
             streaming.Stream(local=str(p), split="unsplit", choose=n)
             for p, n in zip(paths, chooses, strict=True)
         ],
-        convert_raw=dict,
         **kwargs,
-    )
+    )._backend
     upstream = streaming.StreamingDataset(
         streams=[
             streaming.Stream(local=str(tmp_path / "upstream" / p.name), split="unsplit", choose=n)
@@ -53,11 +52,11 @@ def test_local_epochs_match_mosaic(
         ],
         **kwargs,
     )
-    assert local._backend._local_iteration
+    assert local._local_iteration
     assert len(local) == len(upstream)
     for _ in range(3):
         assert list(local) == list(upstream)
-    assert not hasattr(local._backend, "_executor")
+    assert not hasattr(local, "_executor")
 
 
 @pytest.mark.parametrize("mode", ["disabled", "compressed", "remote", "cache_limit"])
@@ -80,13 +79,12 @@ def test_local_iteration_falls_back_when_preparation_needed(tmp_path: Path, mode
             )
             for p in paths
         ],
-        convert_raw=dict,
         local_iteration=mode != "disabled",
         **kwargs,
-    )
-    assert not reader._backend._local_iteration
+    )._backend
+    assert not reader._local_iteration
     assert [row["integer"] for row in reader] == [*range(7), *range(100, 104), *range(200, 205)]
-    assert hasattr(reader._backend, "_executor")
+    assert hasattr(reader, "_executor")
 
 
 def test_local_iteration_invalidates_interrupted_epoch(tmp_path: Path) -> None:
@@ -95,11 +93,10 @@ def test_local_iteration_invalidates_interrupted_epoch(tmp_path: Path) -> None:
 
     reader = MDSReader(
         streams=[streaming.Stream(local=str(p), split="unsplit") for p in _write_streams(tmp_path)],
-        convert_raw=dict,
-    )
+    )._backend
     old = iter(reader)
     assert next(old) == {"integer": 0}
-    assert len(list(reader)) == 16
+    assert sum(1 for _ in reader) == 16
     assert list(old) == []
 
 
@@ -125,9 +122,8 @@ def test_local_iteration_resumes_mosaic_checkpoint(tmp_path: Path) -> None:
             streaming.Stream(local=str(tmp_path / "restored" / p.name), split="unsplit")
             for p in paths
         ],
-        convert_raw=dict,
         shuffle=True,
         batch_size=1,
-    )
-    reader._backend.load_state_dict(state)
+    )._backend
+    reader.load_state_dict(state)
     assert list(reader) == expected
