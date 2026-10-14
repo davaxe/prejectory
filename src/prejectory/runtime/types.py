@@ -241,6 +241,7 @@ def build_loader_plan(
     loader_options: LoaderOptionsModel = descriptor.parse_loader_options(
         resolved_config.loader_options,
     )
+    loader_options.validate_config(resolved_config)
     map_config = (
         None
         if (include_map is False or not descriptor.feature_support.map)
@@ -249,6 +250,7 @@ def build_loader_plan(
     screening = _screening_with_task_endpoint(resolved_config.screening, resolved_config.task)
     return LoaderPlan(
         scenes=resolved_config.scenes,
+        dataset=descriptor.name,
         screening=screening,
         read=ReadSelection.from_config(
             resolved_config.read,

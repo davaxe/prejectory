@@ -2,31 +2,92 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from functools import cached_property
+from math import isclose
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal
 
 import polars as pl
 from typing_extensions import override
 
+from prejectory.config.models import ReadAll, TimeBlockAssign
 from prejectory.core.categories import AgentCategory, DatasetSplit
+from prejectory.core.errors import ConfigurationError
 from prejectory.core.scene import POSITIONS_ONLY
+from prejectory.datasets.eth_ucy.sequence import (
+    DOMAIN_RECORDINGS,
+    discover_recordings,
+    read_recording,
+)
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import (
+    DatasetSource,
+    LoadedSourceFrame,
+    LoaderOptionsModel,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from pathlib import Path
 
+    from prejectory.config.models import DatasetConfig
     from prejectory.core.scene import TrajectorySchema
 
 
-_NATIVE_SPLITS = (DatasetSplit.TRAIN, DatasetSplit.VAL, DatasetSplit.TEST)
+class EthUcyOptions(LoaderOptionsModel):
+    """Select benchmark folds or reconstructed pedestrian domains."""
 
-
-class EthUcyLoader(SceneLoader):
-    """Loader for ETH/UCY pedestrian trajectory datasets."""
+    input_mode: Literal["benchmark", "sequence"] = "benchmark"
 
     @override
-    def iter_sources_for(self, split: DatasetSplit) -> Iterable[DatasetSource[Path]]:
+    def validate_config(self, config: DatasetConfig) -> None:
+        """Reject split settings that would invalidate sequence isolation."""
+        if self.input_mode == "benchmark":
+            if config.assign.strategy in {"time", "shuffled-time"}:
+                msg = "ETH/UCY temporal assignment requires input_mode='sequence'."
+                raise ConfigurationError(msg)
+            return
+        if not isinstance(config.read, ReadAll):
+            msg = "ETH/UCY sequence mode requires read.strategy='all'; native folds are ignored."
+            raise ConfigurationError(msg)
+        if not isinstance(config.assign, TimeBlockAssign):
+            msg = "ETH/UCY sequence mode requires assign.strategy='time' with explicit ratios."
+            raise ConfigurationError(msg)
+        if config.scenes.window is None or config.scenes.window.policy != "strict":
+            msg = "ETH/UCY sequence mode requires strict scene windowing."
+            raise ConfigurationError(msg)
+        if not isclose(config.scenes.sample_time, 0.4, rel_tol=0, abs_tol=1e-12):
+            msg = "ETH/UCY sequence input has sample_time=0.4; use scenes.resample to change rate."
+            raise ConfigurationError(msg)
+
+
+class EthUcyLoader(SceneLoader[Path | tuple[Path, ...], EthUcyOptions]):
+    """Loader for ETH/UCY pedestrian trajectory datasets."""
+
+    @cached_property
+    def _recordings(self) -> dict[str, tuple[Path, ...]]:
+        return discover_recordings(self.root, self.request.dataset or "")
+
+    @override
+    def iter_sources(self) -> Iterable[DatasetSource[Path | tuple[Path, ...]]]:
+        if self.loader_options.input_mode == "benchmark":
+            yield from super().iter_sources()
+        else:
+            for name, files in self._recordings.items():
+                yield DatasetSource(identifier=name, payload=files)
+
+    @override
+    def count_sources(self) -> int | None:
+        if self.loader_options.input_mode == "sequence":
+            return len(self._recordings)
+        return super().count_sources()
+
+    @override
+    def iter_sources_for(
+        self, split: DatasetSplit
+    ) -> Iterable[DatasetSource[Path | tuple[Path, ...]]]:
+        if self.loader_options.input_mode == "sequence":
+            msg = "Native fold selection is unavailable in ETH/UCY sequence mode."
+            raise ConfigurationError(msg)
         for data_file in (self.root / split.value).rglob("*.txt"):
             yield DatasetSource(
                 identifier=self._source_identifier(data_file=data_file, split=split),
@@ -34,7 +95,20 @@ class EthUcyLoader(SceneLoader):
             )
 
     @override
-    def load_source(self, source: DatasetSource[Path]) -> Iterable[LoadedSourceFrame]:
+    def load_source(
+        self, source: DatasetSource[Path | tuple[Path, ...]]
+    ) -> Iterable[LoadedSourceFrame]:
+        if isinstance(source.payload, tuple):
+            members = DOMAIN_RECORDINGS[self.request.dataset or ""]
+            frame = read_recording(
+                source.payload,
+                recording_index=members.index(str(source.identifier)),
+                recording_count=len(members),
+            )
+            yield LoadedSourceFrame(
+                frame.lazy().with_columns(agent_category=pl.lit(AgentCategory.PEDESTRIAN)),
+            )
+            return
         yield LoadedSourceFrame(
             pl.scan_csv(
                 source.payload,

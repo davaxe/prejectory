@@ -139,6 +139,7 @@ class LoaderPlan:
     scenes: ScenesConfig
     loader_options: LoaderOptionsModel
     read: ReadSelection
+    dataset: str | None = None
     screening: ScreeningConfig | None = None
     map: MapConfig | None = None
 
