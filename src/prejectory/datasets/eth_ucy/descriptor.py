@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig
 from prejectory.core.categories import DatasetSplit
-from prejectory.datasets.eth_ucy.loader import EthUcyLoader
+from prejectory.datasets.eth_ucy.loader import EthUcyLoader, EthUcyOptions
 from prejectory.datasets.registry import DatasetDescriptor, DatasetSplitSupport
 from prejectory.datasets.shared.presets import (
     benchmark_task,
@@ -34,12 +36,13 @@ def _descriptor(name: str) -> DatasetDescriptor:
     return DatasetDescriptor(
         name=name,
         loader_cls=EthUcyLoader,
+        loader_options_model=EthUcyOptions,
         default_config=_DEFAULT_CONFIG,
         tasks={"benchmark": benchmark_task(_DEFAULT_CONFIG.scenes, prediction_origin=8)},
         default_task="benchmark",
         native_schema=EthUcyLoader.native_trajectory_schema(),
         supported_native_splits=_NATIVE_SPLITS,
-        split_support=DatasetSplitSupport(scene=True, source=True),
+        split_support=DatasetSplitSupport(scene=True, source=True, time_block=True),
         temporal_support=temporal_support(
             source_unit="recording",
             min_frames=min_frames,

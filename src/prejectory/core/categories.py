@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Collection, Iterable
-from enum import Enum, IntEnum
+from enum import IntEnum, StrEnum
 from typing import Final, TypeVar
 
 
@@ -76,7 +76,7 @@ class EdgeType(IntEnum):
         return cls.from_string(value)
 
 
-class DatasetSplit(str, Enum):
+class DatasetSplit(StrEnum):
     """Enum representing the available dataset splits."""
 
     TRAIN = "train"

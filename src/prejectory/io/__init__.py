@@ -5,9 +5,7 @@
 ``python
 from prejectory.io import (
     DatasetManifest,
-    RecordTransform,
     SceneRecord,
-    SceneTransform,
     ForecastRecord,
     read_manifest,
     write_manifest,
@@ -22,13 +20,7 @@ runtime and CLI share one canonical configuration surface.
 - [`prejectory.io.adapters`][] for optional Torch and PyG adapter layers
 """
 
-from prejectory.io.base import (
-    DatasetReader,
-    IterableDatasetReader,
-    RecordTransform,
-    SceneTransform,
-    StorageBackend,
-)
+from prejectory.io.base import DatasetReader, IterableDatasetReader, StorageBackend
 from prejectory.io.dataset import OpenedDataset, open_dataset
 from prejectory.io.manifest import (
     DatasetManifest,
@@ -47,9 +39,7 @@ __all__ = [
     "OpenedDataset",
     "PredictionBounds",
     "PredictionTaskManifest",
-    "RecordTransform",
     "SceneRecord",
-    "SceneTransform",
     "StorageBackend",
     "manifest_path",
     "open_dataset",

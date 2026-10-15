@@ -59,5 +59,5 @@ __all__ = [
     "available_trajectory_schema_names",
     "available_trajectory_schemas",
     "errors",
-    "get_trajectory_schema"
+    "get_trajectory_schema",
 ]

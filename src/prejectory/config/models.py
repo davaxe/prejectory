@@ -221,6 +221,29 @@ class MDSOutputPatch(ConfigPatch[MDSOutputConfig]):
     full_config_type: type[MDSOutputConfig] = Field(default=MDSOutputConfig, init=False, repr=False)
 
 
+class ZarrOutputConfig(ResolvedConfig):
+    """Backend-specific chunking and compression for Zarr output."""
+
+    scene_chunk: int = Field(default=256, gt=0)
+    agent_chunk: int = Field(default=4096, gt=0)
+    map_node_chunk: int = Field(default=16384, gt=0)
+    map_edge_chunk: int = Field(default=16384, gt=0)
+    compression_level: int | None = Field(default=3, ge=0, le=22)
+
+
+class ZarrOutputPatch(ConfigPatch[ZarrOutputConfig]):
+    """Patch model for Zarr chunking and compression settings."""
+
+    scene_chunk: int | None = Field(default=None, gt=0)
+    agent_chunk: int | None = Field(default=None, gt=0)
+    map_node_chunk: int | None = Field(default=None, gt=0)
+    map_edge_chunk: int | None = Field(default=None, gt=0)
+    compression_level: int | None = Field(default=None, ge=0, le=22)
+    full_config_type: type[ZarrOutputConfig] = Field(
+        default=ZarrOutputConfig, init=False, repr=False
+    )
+
+
 class OutputConfig(ResolvedConfig):
     """Resolved output configuration shared by storage backends."""
 
@@ -232,6 +255,8 @@ class OutputConfig(ResolvedConfig):
     """Whether scene positions are translated into a local origin before writing."""
     mds: MDSOutputConfig = Field(default_factory=MDSOutputConfig)
     """Backend-specific tuning for Mosaic Streaming outputs."""
+    zarr: ZarrOutputConfig = Field(default_factory=ZarrOutputConfig)
+    """Backend-specific tuning for Zarr outputs."""
 
 
 class OutputPatch(ConfigPatch[OutputConfig]):
@@ -245,6 +270,8 @@ class OutputPatch(ConfigPatch[OutputConfig]):
     """Replacement policy for recentering scene positions before writing."""
     mds: MDSOutputPatch | None = None
     """Backend-specific patch overrides for Mosaic Streaming outputs."""
+    zarr: ZarrOutputPatch | None = None
+    """Backend-specific patch overrides for Zarr outputs."""
     full_config_type: type[OutputConfig] = Field(default=OutputConfig, init=False, repr=False)
 
 

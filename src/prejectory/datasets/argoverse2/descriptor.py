@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from prejectory.config.models import DatasetConfig, FullMapExtraction, MapConfig
 from prejectory.core.categories import DatasetSplit
 from prejectory.datasets.argoverse2.loader import Argoverse2Loader, Argoverse2LoaderOptions

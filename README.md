@@ -22,9 +22,10 @@ The full guides, reference material, and dataset documentation live on the [docu
 pip install prejectory
 pip install "prejectory[cli]"
 pip install "prejectory[cli,mds]"
+pip install "prejectory[cli,zarr]"
 ```
 
-The base package includes the runtime API and the `pickle` backend. Add `cli` for the command-line interface and `mds` for Mosaic Streaming output.
+The base package includes the runtime API and the `pickle` backend. Add `cli` for the command-line interface, `mds` for Mosaic Streaming output, or `zarr` for chunked random-access arrays.
 
 ## CLI Quickstart
 

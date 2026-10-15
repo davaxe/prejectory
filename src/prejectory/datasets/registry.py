@@ -319,11 +319,6 @@ _BUILTIN_DATASETS: dict[str, _BuiltinDatasetDescriptor] = {
         export_key="ind",
     ),
     "interaction": _builtin("prejectory.datasets.interaction"),
-    "lyft": _builtin(
-        "prejectory.datasets.lyft",
-        optional_dependencies=("zarr", "numcodecs", "google.protobuf"),
-        extra="lyft",
-    ),
     "nuscenes": _builtin("prejectory.datasets.nuscenes"),
     "opendd": _builtin("prejectory.datasets.opendd"),
     "round": _builtin(

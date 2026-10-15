@@ -35,12 +35,10 @@ class DatasetManifest:
     The manifest records the shape and schema contract of one processed export.
     Reader and adapter code use it to understand feature columns, temporal
     horizons, coordinate handling, map availability, and manifest compatibility.
-    For custom payload formats, trajectory metadata describes the requested
-    canonical representation; the format ID/version owns the actual payload layout.
     """
 
     dataset: str
-    """Name of the DatasetSource dataset, e.g. 'lyft' or 'waymo'."""
+    """Name of the DatasetSource dataset, e.g. 'nuscenes' or 'waymo'."""
     storage_backend: str
     """Storage backend used to write the exported scene records."""
     prejectory_version: str
@@ -77,7 +75,7 @@ class DatasetManifest:
     """Dataset names indexed by the integer dataset ids stored in records."""
 
     payload_format: str = "prejectory.scene"
-    """Record encoding identifier; other formats require an explicit decoder."""
+    """Record encoding identifier used for reader compatibility checks."""
     payload_version: int = 1
     """Version of the payload format, independent of the manifest schema."""
     split_counts: dict[str, int] = field(default_factory=dict)

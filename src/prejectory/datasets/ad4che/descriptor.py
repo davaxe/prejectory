@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 from prejectory.config.models import DatasetConfig, FullMapExtraction, MapConfig

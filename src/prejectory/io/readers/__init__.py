@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from prejectory.io.base import DatasetReader, IterableDatasetReader
     from prejectory.io.readers.mds import MDSReader, MDSReaderInitArgs
     from prejectory.io.readers.pickle import PickleReader
+    from prejectory.io.readers.zarr import ZarrReader
 
 __all__ = [
     "DatasetReader",
@@ -35,6 +36,7 @@ __all__ = [
     "MDSReader",
     "MDSReaderInitArgs",
     "PickleReader",
+    "ZarrReader",
 ]
 
 __lazy_exports__: dict[str, tuple[str, str]] = {
@@ -43,6 +45,7 @@ __lazy_exports__: dict[str, tuple[str, str]] = {
     "MDSReader": ("prejectory.io.readers.mds", "MDSReader"),
     "MDSReaderInitArgs": ("prejectory.io.readers.mds", "MDSReaderInitArgs"),
     "PickleReader": ("prejectory.io.readers.pickle", "PickleReader"),
+    "ZarrReader": ("prejectory.io.readers.zarr", "ZarrReader"),
 }
 
 

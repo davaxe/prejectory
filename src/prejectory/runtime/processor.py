@@ -25,11 +25,7 @@ if TYPE_CHECKING:
     from prejectory.core.scene import TrajectorySchema
     from prejectory.core.scene.model import MapResolver
     from prejectory.processing.loading.base import SceneLoader
-    from prejectory.processing.loading.models import (
-        DatasetSource,
-        LoadedSourceFrame,
-        LoaderOptionsModel,
-    )
+    from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
     from prejectory.processing.screening.screen import CleanupSceneStats
     from prejectory.processing.trajectory import TrajectoryProcessingStages
     from prejectory.runtime.types import ExecutionPlan
@@ -133,7 +129,7 @@ class RuntimeProcessor:
     """Own the full runtime DatasetSource-to-scene processing flow for one plan."""
 
     dataset: str
-    loader: SceneLoader[Any, LoaderOptionsModel]
+    loader: SceneLoader[Any, Any]
     source_schema: TrajectorySchema
     target_schema: TrajectorySchema
     horizon_frames: int
@@ -149,7 +145,7 @@ class RuntimeProcessor:
     def from_plan(
         cls,
         plan: ExecutionPlan,
-        loader: SceneLoader[Any, LoaderOptionsModel],
+        loader: SceneLoader[Any, Any],
     ) -> RuntimeProcessor:
         """Create processor from execution plan and scene loader."""
         return cls(

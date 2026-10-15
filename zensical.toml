@@ -45,7 +45,6 @@ nav = [
     { i80 = "reference/datasets/i80.md" },
     { ind = "reference/datasets/ind.md" },
     { interaction = "reference/datasets/interaction.md" },
-    { lyft = "reference/datasets/lyft.md" },
     { nuscenes = "reference/datasets/nuscenes.md" },
     { opendd = "reference/datasets/opendd.md" },
     { round = "reference/datasets/round.md" },

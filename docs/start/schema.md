@@ -51,6 +51,7 @@ The built-in backends are:
 | -------- | ----------------------------------------------------------------------------------------------- |
 | `pickle` | Writes one pickled `SceneRecord` per scene. No extra dependency.                                |
 | `mds`    | Writes Mosaic Streaming shards and `index.json` files. Requires `prejectory[mds]`.               |
+| `zarr`   | Writes chunked worker-local Zarr shards with indexed scene access. Requires `prejectory[zarr]`.  |
 | `null`   | Runs the full pipeline but does not persist scene data. Useful for validation and benchmarking. |
 
 Two defaults are easy to miss:
@@ -73,6 +74,7 @@ The backend decides what goes inside each split directory:
 
 - `pickle` writes `*.pkl` files
 - `mds` writes shard files plus `index.json`
+- `zarr` writes `part-*.zarr` worker shards
 - `null` writes no scene files
 
 The manifest is written as JSON at the output root. It records the produced splits, storage backend,
@@ -98,5 +100,5 @@ Semantic labels and encoded arrays use different names:
 
 All backends feed the same reader-side mental model:
 
-- `PickleReader` and `MDSReader` yield framework-neutral `SceneRecord` objects
+- `PickleReader`, `MDSReader`, and `ZarrReader` yield framework-neutral `SceneRecord` objects
 - `TorchSceneDataset` and `HeteroSceneDataset` build on top of readers.

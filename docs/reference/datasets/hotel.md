@@ -69,3 +69,9 @@ hotel/
 ├── val/
 └── test/
 ```
+
+## Sequence domain exports
+
+The default reads benchmark folds. To export only this pedestrian domain, select
+sequence mode in a config file. See the shared [ETH/UCY modes, filename mapping,
+reconstruction rules, and examples](eth.md#sequence-mode-config-file-only).

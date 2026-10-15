@@ -1,13 +1,14 @@
 # ruff: file-ignore[import-outside-top-level]
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import numpy.typing as npt
 import pytest
 
+from prejectory.core.categories import DatasetSplit
 from prejectory.core.errors import ManifestCompatibilityError
 from prejectory.io import DatasetManifest, PredictionBounds, PredictionTaskManifest, read_manifest
 from prejectory.io.backends.pickle import PickleWriter
@@ -24,16 +25,6 @@ if TYPE_CHECKING:
 
     from prejectory.core.scene import Scene
     from prejectory.io.records import SceneRecord
-
-NDArrayAny = npt.NDArray[Any]
-
-
-@dataclass(slots=True)
-class CustomPickleRecord:
-    scene_number: int
-    dataset: object
-    values: npt.NDArray[Any]
-    source: str
 
 
 def test_split_scene_record_rejects_bad_bounds(scene: Scene) -> None:
@@ -74,77 +65,8 @@ def test_pickle_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
     assert_scene_record_equal(reader[0], expected)
 
 
-def test_pickle_writer_accepts_record_transform(tmp_path: Path, scene: Scene) -> None:
-    scene = replace(scene, dataset="demo")
-    output_dir = tmp_path / "pickle"
-
-    def transform(record: SceneRecord) -> CustomPickleRecord:
-        return CustomPickleRecord(
-            scene_number=record.scene_number,
-            dataset=record.dataset_id,
-            values=record.features[:, :1, 0],
-            source="record",
-        )
-
-    writer = PickleWriter(
-        output_dir=output_dir,
-        config=output_config(),
-        splits=None,
-        record_transform=transform,
-    )
-    writer.write(scene)
-    writer.finish_local()
-
-    reader = PickleReader(output_dir, record_type=CustomPickleRecord)
-    record = reader[0]
-
-    assert record.scene_number == scene.scene_number
-    assert record.dataset is None
-    assert record.source == "record"
-    assert record.values.shape == (2, 1)
-
-
-def test_pickle_writer_accepts_scene_transform(tmp_path: Path, scene: Scene) -> None:
-    scene = replace(scene, dataset="demo")
-    output_dir = tmp_path / "pickle"
-
-    def transform(scene: Scene) -> CustomPickleRecord:
-        return CustomPickleRecord(
-            scene_number=scene.scene_number,
-            dataset=scene.dataset,
-            values=np.array([scene.horizon_frames], dtype=np.int32),
-            source="scene",
-        )
-
-    writer = PickleWriter(
-        output_dir=output_dir,
-        config=output_config(),
-        splits=None,
-        scene_transform=transform,
-    )
-    writer.write(scene)
-    writer.finish_local()
-
-    record = PickleReader(output_dir, record_type=CustomPickleRecord)[0]
-
-    assert record.scene_number == scene.scene_number
-    assert record.dataset == "demo"
-    assert record.source == "scene"
-    np.testing.assert_array_equal(record.values, np.array([scene.horizon_frames], dtype=np.int32))
-
-
-def test_pickle_writer_rejects_multiple_transforms(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="record_transform"):
-        _ = PickleWriter(
-            output_dir=tmp_path,
-            config=output_config(),
-            splits=None,
-            record_transform=lambda record: record,
-            scene_transform=lambda scene: scene,
-        )
-
-
-def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
+@pytest.mark.parametrize("predownload", [None, 16])
+def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene, predownload: int | None) -> None:
     pytest.importorskip("streaming")
     scene = replace(scene, dataset="demo")
 
@@ -164,10 +86,164 @@ def test_mds_writer_roundtrip(tmp_path: Path, scene: Scene) -> None:
     writer.finish_local()
     writer.finish_final()
 
-    reader = MDSReader(path=output_dir)
+    reader = (
+        MDSReader(path=output_dir)
+        if predownload is None
+        else MDSReader(path=output_dir, predownload=predownload)
+    )
+    backend = reader._backend  # pyright: ignore[reportPrivateUsage]  # ruff: ignore[private-member-access]
+    assert backend.predownload == (64 if predownload is None else predownload)
     assert len(reader) == 1
     assert reader[0].ego_agent_id == 10
     assert_scene_record_equal(reader[0], expected)
+
+
+@pytest.mark.parametrize("splits", [None, (), (DatasetSplit.TRAIN,)])
+def test_mds_parallel_writer_merges_worker_outputs(
+    tmp_path: Path, scene: Scene, splits: tuple[DatasetSplit, ...] | None
+) -> None:
+    pytest.importorskip("streaming")
+    from prejectory.io.backends.mds import MDSDatasetWriter
+    from prejectory.io.readers import MDSReader
+
+    split = next(iter(splits or (None,)))
+    for worker_id in range(2):
+        writer = MDSDatasetWriter(
+            output_dir=tmp_path,
+            config=output_config(),
+            splits=splits,
+            parallel=True,
+            parallel_group=worker_id,
+        )
+        writer.write(replace(scene, scene_number=worker_id, split_assignment=split))
+        writer.finish_local()
+    # Exercise both empty and populated split iterators during finalization.
+    MDSDatasetWriter.finish_dataset(
+        output_dir=tmp_path, splits=iter(splits) if splits is not None else None, parallel=True
+    )
+    reader = MDSReader(path=tmp_path, split=split)
+    assert len(reader) == 2
+    for record in reader:
+        expected = encode_scene_record(
+            replace(scene, scene_number=record.scene_number), dtype=np.float32
+        )
+        assert_scene_record_equal(record, expected)
+    assert {reader[i].scene_number for i in range(len(reader))} == {0, 1}
+
+
+def test_zarr_writer_roundtrip_across_worker_shards(tmp_path: Path, scene: Scene) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    scene = replace(scene, dataset="demo")
+    output_dir = tmp_path / "zarr"
+    bounds = PredictionBounds(2, 3)
+    for worker_id, scene_number in enumerate((7, 8)):
+        writer = ZarrDatasetWriter(
+            output_dir=output_dir,
+            identifier=worker_id,
+            config=output_config(),
+            prediction_bounds=bounds,
+        )
+        writer.write(replace(scene, scene_number=scene_number))
+        writer.finish_local()
+
+    reader = ZarrReader(output_dir)
+    assert len(reader) == 2
+    assert reader[-1].scene_number == 8
+    expected = encode_scene_record(scene, dtype=np.float32, prediction_bounds=bounds)
+    assert_scene_record_equal(reader[0], expected)
+
+
+def test_zarr_writer_flushes_without_closing_shard(tmp_path: Path, scene: Scene) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    writer = ZarrDatasetWriter(tmp_path, identifier=0, config=output_config())
+    writer.write(replace(scene, scene_number=1))
+    writer.flush_local()
+    assert [record.scene_number for record in ZarrReader(tmp_path)] == [1]
+
+    writer.write(replace(scene, scene_number=2))
+    writer.flush_local()
+    writer.finish_local()
+    ZarrDatasetWriter.finish_dataset(tmp_path, splits=None)
+    assert [record.scene_number for record in ZarrReader(tmp_path)] == [1, 2]
+
+
+def test_zarr_writer_preserves_empty_map_shapes(tmp_path: Path, scene: Scene) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    writer = ZarrDatasetWriter(tmp_path, identifier=0, config=output_config())
+    writer.write(replace(scene, map_key=None, map_resolver=None))
+    writer.finish_local()
+
+    record = ZarrReader(tmp_path)[0]
+    assert record.map_node_positions.shape == (0, 2)
+    assert record.map_edge_indices.shape == (2, 0)
+
+
+def test_zarr_chunk_cache_crosses_chunks_without_sharing_records(
+    tmp_path: Path, scene: Scene
+) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.config.models import ZarrOutputConfig
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+
+    config = output_config().model_copy(
+        update={"zarr": ZarrOutputConfig(agent_chunk=3, map_node_chunk=3, map_edge_chunk=1)}
+    )
+    writer = ZarrDatasetWriter(tmp_path, identifier=0, config=config)
+    for number in range(3):
+        writer.write(replace(scene, scene_number=number))
+    writer.finish_local()
+
+    reader = ZarrReader(tmp_path)
+    expected = encode_scene_record(scene, dtype=np.float32)
+    for number in (1, 0, 2, 1):
+        actual = reader[number]
+        assert_scene_record_equal(actual, replace(expected, scene_number=number))
+
+    first = reader[0]
+    first.features[:] = 123
+    first.position_offset[:] = 123
+    first.map_node_positions[:] = 123
+    first.map_edge_indices[:] = 123
+    assert_scene_record_equal(reader[0], replace(expected, scene_number=0))
+
+
+def test_zarr_reader_evicts_cached_shards(
+    tmp_path: Path, scene: Scene, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("zarr")
+    from prejectory.io.backends.zarr import ZarrDatasetWriter
+    from prejectory.io.readers import ZarrReader
+    from prejectory.io.readers import zarr as zarr_reader
+
+    for identifier in range(2):
+        writer = ZarrDatasetWriter(tmp_path, identifier=identifier, config=output_config())
+        writer.write(replace(scene, scene_number=identifier))
+        writer.finish_local()
+
+    monkeypatch.setattr(zarr_reader, "_MAX_CACHED_SHARD_BYTES", 1)
+    reader = ZarrReader(tmp_path)
+    for index in (0, 1, 0):
+        assert reader[index].scene_number == index
+        assert len(reader._readers) == 1  # ruff: ignore[private-member-access]  # pyright: ignore[reportPrivateUsage]
+
+
+def test_zarr_cached_slice_rejects_invalid_bounds(tmp_path: Path) -> None:
+    zarr = pytest.importorskip("zarr")
+    from prejectory.io.readers.zarr import _LastChunk  # pyright: ignore[reportPrivateUsage]
+
+    array = zarr.open_array(tmp_path / "array.zarr", mode="w", shape=(2,), chunks=(1,))
+    with pytest.raises(IndexError, match="Invalid cached Zarr slice"):
+        _ = _LastChunk(array).read(2, 3)
 
 
 def test_mds_reader_combines_streams_with_per_row_prediction_bounds(
@@ -211,66 +287,47 @@ def test_mds_reader_combines_streams_with_per_row_prediction_bounds(
     } == {(1, 2), (2, 1)}
 
 
-def test_mds_writer_accepts_transform_with_columns(tmp_path: Path, scene: Scene) -> None:
-    pytest.importorskip("streaming")
-    scene = replace(scene, dataset="demo")
-
+@pytest.mark.parametrize("adapter", ["torch", "pyg"])
+def test_mds_iterable_adapters_partition_spawned_persistent_workers(
+    tmp_path: Path, scene: Scene, adapter: str
+) -> None:
+    streaming = pytest.importorskip("streaming")
+    torch = pytest.importorskip("torch")
     from prejectory.io.backends.mds import MDSDatasetWriter
-    from prejectory.io.readers import MDSReader
+    from prejectory.io.readers.mds import MDSReader
 
-    def transform(record: SceneRecord) -> dict[str, Any]:
-        observation_length = 1
-        return {
-            "scene_number": int(record.scene_number),
-            "history": record.features[:, :observation_length],
-            "future": record.features[:, observation_length:],
-            "history_mask": record.valid_mask[:, :observation_length].astype(np.uint8, copy=False),
-            "future_mask": record.valid_mask[:, observation_length:].astype(np.uint8, copy=False),
-        }
+    if adapter == "pyg":
+        pytest.importorskip("torch_geometric")
+        from prejectory.io.adapters.pyg import IterableHeteroSceneDataset as Adapter
+    else:
+        from prejectory.io.adapters.torch import IterableTorchSceneDataset as Adapter
 
-    columns = {
-        "scene_number": "int",
-        "history": "ndarray:float32",
-        "future": "ndarray:float32",
-        "history_mask": "ndarray:uint8",
-        "future_mask": "ndarray:uint8",
-    }
-    output_dir = tmp_path / "mds"
-    writer = MDSDatasetWriter(
-        output_dir=output_dir,
-        config=output_config(),
-        splits=None,
-        parallel=False,
-        record_transform=transform,
-        mds_columns=columns,
-    )
-    writer.write(scene)
-    writer.finish_local()
-    writer.finish_final()
-
-    raw = MDSReader(path=output_dir, convert_raw=lambda record: record)[0]
-    expected = encode_scene_record(scene, dtype=np.float32)
-
-    assert int(raw["scene_number"]) == scene.scene_number
-    np.testing.assert_allclose(raw["history"], expected.features[:, :1])
-    np.testing.assert_allclose(raw["future"], expected.features[:, 1:])
-    np.testing.assert_array_equal(raw["history_mask"], expected.valid_mask[:, :1].astype(np.uint8))
-    np.testing.assert_array_equal(raw["future_mask"], expected.valid_mask[:, 1:].astype(np.uint8))
-
-
-def test_mds_writer_requires_columns_for_custom_transform(tmp_path: Path) -> None:
-    pytest.importorskip("streaming")
-
-    from prejectory.io.backends.mds import MDSDatasetWriter
-
-    with pytest.raises(ValueError, match="mds_columns"):
-        _ = MDSDatasetWriter(
-            output_dir=tmp_path,
-            config=output_config(),
-            splits=None,
-            parallel=False,
-            record_transform=lambda record: {"scene_number": record.scene_number},
+    roots: list[Path] = []
+    for stream_id in range(3):
+        root = tmp_path / str(stream_id)
+        writer = MDSDatasetWriter(
+            output_dir=root, config=output_config(), splits=None, parallel=False
         )
+        for index in range(4):
+            writer.write(replace(scene, scene_number=stream_id * 4 + index))
+        writer.finish_local()
+        roots.append(root)
+    reader = MDSReader(
+        streams=[streaming.Stream(local=str(root), split="unsplit") for root in roots],
+        shuffle=True,
+        batch_size=2,
+    )
+    loader = torch.utils.data.DataLoader(
+        Adapter(reader),
+        batch_size=2,
+        num_workers=2,
+        multiprocessing_context="spawn",
+        persistent_workers=True,
+        collate_fn=list,
+    )
+    for _ in range(2):
+        numbers = [int(record.scene_number) for batch in loader for record in batch]
+        assert sorted(numbers) == list(range(12))
 
 
 def test_mds_encoder_decoder_roundtrip(scene: Scene) -> None:
@@ -405,15 +462,15 @@ def _build_pickle_reader(
     return PickleReader(output_dir), expected
 
 
-def _to_numpy(tensor: torch.Tensor) -> NDArrayAny:
-    return cast("NDArrayAny", tensor.detach().cpu().numpy())
+def _to_numpy(tensor: torch.Tensor) -> npt.NDArray[Any]:
+    return cast("npt.NDArray[Any]", tensor.detach().cpu().numpy())
 
 
-def _assert_tensor_allclose(tensor: torch.Tensor, expected: NDArrayAny) -> None:
+def _assert_tensor_allclose(tensor: torch.Tensor, expected: npt.NDArray[Any]) -> None:
     np.testing.assert_allclose(_to_numpy(tensor), expected)
 
 
-def _assert_tensor_array_equal(tensor: torch.Tensor, expected: NDArrayAny) -> None:
+def _assert_tensor_array_equal(tensor: torch.Tensor, expected: npt.NDArray[Any]) -> None:
     np.testing.assert_array_equal(_to_numpy(tensor), expected)
 
 
@@ -546,3 +603,50 @@ def test_pyg_forecast_collate_aligns_history_and_future(tmp_path: Path, scene: S
     assert tuple(batch["agent"].future_features.shape[1:]) == (2, 7)
     assert not bool(batch["agent"].history_mask[:2, 0].any())
     assert not bool(batch["agent"].future_mask[2:, 1].any())
+
+
+@pytest.mark.parametrize("forecast", [False, True])
+def test_pyg_collation_preserves_inputs_and_owns_batch_tensors(
+    tmp_path: Path, scene: Scene, *, forecast: bool
+) -> None:
+    pytest.importorskip("torch_geometric")
+    torch = pytest.importorskip("torch")
+    from torch_geometric.data import HeteroData
+
+    from prejectory.io.adapters.pyg import (
+        HeteroForecastDataset,
+        HeteroSceneDataset,
+        collate_forecast_hetero_with_time_padding,
+        collate_hetero_with_time_padding,
+    )
+
+    reader, _ = _build_pickle_reader(tmp_path, scene, bounds=PredictionBounds(2, 3))
+    if forecast:
+        records = [
+            HeteroForecastDataset(reader, bounds=PredictionBounds(1, 3)).get(0),
+            HeteroForecastDataset(reader, bounds=PredictionBounds(2, 3)).get(0),
+        ]
+        collate = collate_forecast_hetero_with_time_padding
+    else:
+        records = [HeteroSceneDataset(reader).get(0), HeteroSceneDataset(reader).get(0)]
+        records[0]["agent"].features = records[0]["agent"].features[:, :1]
+        records[0]["agent"].valid_mask = records[0]["agent"].valid_mask[:, :1]
+        collate = collate_hetero_with_time_padding
+    originals = [record.clone() for record in records]
+    batch = collate(records)
+    assert isinstance(batch, HeteroData)
+
+    def assert_unchanged() -> None:
+        for record, original in zip(records, originals, strict=True):
+            for store, expected in zip(record.stores, original.stores, strict=True):
+                assert set(store.keys()) == set(expected.keys())
+                for key, value in expected.items():
+                    if isinstance(value, torch.Tensor):
+                        torch.testing.assert_close(store[key], value, equal_nan=True)
+
+    assert_unchanged()
+    for store in batch.stores:
+        for value in store.values():
+            if isinstance(value, torch.Tensor):
+                _ = value.zero_()
+    assert_unchanged()

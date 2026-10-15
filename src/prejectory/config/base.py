@@ -3,10 +3,20 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping, MutableMapping
-from typing import TYPE_CHECKING, Annotated, ClassVar, Generic, Literal, TypeAlias, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    ClassVar,
+    Generic,
+    Literal,
+    TypeAlias,
+    TypeVar,
+    cast,
+)
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
-from typing_extensions import Any, TypeAliasType, override
+from typing_extensions import TypeAliasType, override
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

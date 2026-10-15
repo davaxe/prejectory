@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path  # ruff: ignore[typing-only-standard-library-import] - Pydantic resolves this forward reference at runtime.
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -20,12 +20,7 @@ from prejectory.core.errors import ConfigurationError
 from prejectory.core.scene.model import derived_trajectory_fields
 from prejectory.core.scene.schema import POSITIONS_ONLY, TrajectorySchema, get_trajectory_schema
 from prejectory.datasets.registry import dataset_id_for_name, dataset_names_by_id
-from prejectory.io.base import (
-    RecordTransform,
-    SceneTransform,
-    StorageBackend,
-    validate_transform_choice,
-)
+from prejectory.io.base import StorageBackend
 from prejectory.io.manifest import DatasetManifest, PredictionTaskManifest, package_version
 from prejectory.processing.models import LoaderPlan, ReadSelection, SplitAssignmentPlan
 from prejectory.processing.screening.agent import AgentRequireFrames
@@ -131,8 +126,6 @@ class ExecutionPlan:
     """Half-open prediction bounds after resampling, if configured."""
     effective_sample_time: float
     """Effective `sample_time` interval in seconds after resampling is applied."""
-    output_transform: OutputTransform[object] | None = None
-    """Optional custom persisted-output configuration for writer backends."""
     limit: int | None = None
     """Optional maximum number of scenes to write."""
     seed: int | None = None
@@ -214,12 +207,6 @@ class ExecutionPlan:
                 else (self.dataset,)
             ),
             storage_backend=self.storage_backend.value,
-            payload_format="prejectory.scene"
-            if self.output_transform is None
-            else self.output_transform.format_id,
-            payload_version=1
-            if self.output_transform is None
-            else self.output_transform.format_version,
             prejectory_version=package_version(),
             precision=export_config.precision,
             feature_columns=self.trajectory_schema.feature_columns(),
@@ -244,47 +231,6 @@ class ExecutionPlan:
         )
 
 
-PayloadT = TypeVar("PayloadT")
-
-
-@dataclass(frozen=True, slots=True)
-class OutputTransform(Generic[PayloadT]):
-    """Python API configuration for custom persisted output payloads.
-
-    `record_transform` is the preferred hook because it receives the canonical
-    `SceneRecord` after Prejectory has applied normal output semantics.
-    `scene_transform` is an expert escape hatch for deriving payloads directly
-    from runtime `Scene` objects.
-    """
-
-    record_transform: RecordTransform[PayloadT] | None = None
-    """Optional transform from canonical `SceneRecord` to persisted payload."""
-    scene_transform: SceneTransform[PayloadT] | None = None
-    """Optional transform from runtime `Scene` to persisted payload."""
-    format_id: str = field(kw_only=True)
-    """Payload format identifier. Custom decoders are selected explicitly."""
-    format_version: int = 1
-    """Version of the custom payload format."""
-    mds_columns: dict[str, str] | None = None
-    """MDS column schema required when custom rows are written to MDS."""
-
-    def __post_init__(self) -> None:
-        """Validate that only one transform mode is configured."""
-        if self.record_transform is None and self.scene_transform is None:
-            msg = "OutputTransform requires a record_transform or scene_transform."
-            raise ConfigurationError(msg)
-        if not self.format_id.strip() or self.format_id == "prejectory.scene":
-            msg = "Custom output needs a non-empty, non-reserved format_id."
-            raise ConfigurationError(msg)
-        if self.format_version < 1:
-            msg = "Custom output format_version must be positive."
-            raise ConfigurationError(msg)
-        validate_transform_choice(
-            record_transform=self.record_transform,
-            scene_transform=self.scene_transform,
-        )
-
-
 def build_loader_plan(
     *,
     descriptor: DatasetDescriptor,
@@ -295,6 +241,7 @@ def build_loader_plan(
     loader_options: LoaderOptionsModel = descriptor.parse_loader_options(
         resolved_config.loader_options,
     )
+    loader_options.validate_config(resolved_config)
     map_config = (
         None
         if (include_map is False or not descriptor.feature_support.map)
@@ -303,6 +250,7 @@ def build_loader_plan(
     screening = _screening_with_task_endpoint(resolved_config.screening, resolved_config.task)
     return LoaderPlan(
         scenes=resolved_config.scenes,
+        dataset=descriptor.name,
         screening=screening,
         read=ReadSelection.from_config(
             resolved_config.read,
@@ -369,8 +317,6 @@ class ExecutionRequest(BaseModel):
     """Whether execution may replace an existing non-empty output directory."""
     input_dir_exists: bool = True
     """Whether request resolution should require `input_dir` to exist."""
-    output_transform: OutputTransform[object] | None = None
-    """Customized output transform configuration."""
 
 
 def resolve_effective_scene_window(

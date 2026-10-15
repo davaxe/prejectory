@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from dataclasses import replace
+from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 import pytest
@@ -26,9 +27,8 @@ from prejectory.datasets.registry import _REGISTRY, dataset_names_by_id
 from prejectory.io import PredictionBounds, StorageBackend, read_manifest
 from prejectory.io.backends.null import NullWriter
 from prejectory.io.base import WorkerWriterProvider
-from prejectory.io.readers import PickleReader
 from prejectory.processing.screening.agent import AgentRequireFrames
-from prejectory.runtime import ExecutionRequest, OutputTransform, execute_request, resolve_request
+from prejectory.runtime import ExecutionRequest, execute_request, resolve_request
 from prejectory.runtime.executor import open_executor
 from prejectory.runtime.processor import RuntimeProcessor
 from tests.support import (
@@ -43,7 +43,6 @@ if TYPE_CHECKING:
 
     from prejectory.core.scene import Scene
     from prejectory.datasets import DatasetDescriptor
-    from prejectory.io.records import SceneRecord
 
 
 def _request(tmp_path: Path, **kwargs: object) -> ExecutionRequest:
@@ -98,6 +97,24 @@ class FailingWriter:
 
 def _create_failing_writer(_worker_id: int) -> FailingWriter:
     return FailingWriter()
+
+
+class TrackingWriter:
+    def __init__(self, marker: Path) -> None:
+        self.marker: Path = marker
+
+    def write(self, scene: Scene) -> None:  # ruff: ignore[no-self-use]
+        _ = scene
+
+    def flush_local(self) -> None:  # ruff: ignore[no-self-use]
+        return
+
+    def finish_local(self) -> None:
+        _ = self.marker.write_text("finished", encoding="utf-8")
+
+
+def _create_tracking_writer(output_dir: Path, worker_id: int) -> TrackingWriter:
+    return TrackingWriter(output_dir / f"worker-{worker_id}.txt")
 
 
 def test_resolve_request_builds_plan(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -438,64 +455,6 @@ prediction_end = 30
     assert rule.frames == frozenset({9})
 
 
-def test_execute_request_applies_record_transform(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _patch_get_demo_descriptor(monkeypatch)
-
-    def transform(record: SceneRecord) -> dict[str, object]:
-        return {
-            "scene_number": record.scene_number,
-            "dataset_id": record.dataset_id,
-            "feature_shape": record.features.shape,
-        }
-
-    output_transform = OutputTransform(format_id="test.custom", record_transform=transform)
-    request = _request(
-        tmp_path,
-        storage_backend=StorageBackend.PICKLE,
-        output_transform=output_transform,
-    )
-
-    result = execute_request(request)
-    record = cast("dict[str, object]", PickleReader(result.output_dir, record_type=dict)[0])
-
-    assert record == {"scene_number": 0, "dataset_id": None, "feature_shape": (1, 3, 7)}
-
-
-def test_execute_request_writes_custom_mds(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    pytest.importorskip(
-        "streaming",
-        reason="Requires streaming package for custom MDS output record format",
-    )
-    from prejectory.io.readers import MDSReader  # ruff: ignore[import-outside-top-level]
-
-    _patch_get_demo_descriptor(monkeypatch)
-
-    def transform(record: SceneRecord) -> dict[str, object]:
-        return {
-            "scene_number": record.scene_number,
-            "dataset_id": -1 if record.dataset_id is None else record.dataset_id,
-            "feature_shape": record.features.shape,
-        }
-
-    output_transform = OutputTransform(
-        format_id="test.custom",
-        record_transform=transform,
-        mds_columns={"scene_number": "int", "dataset_id": "int", "feature_shape": "json"},
-    )
-    request = _request(
-        tmp_path,
-        storage_backend=StorageBackend.MDS,
-        output_transform=output_transform,
-    )
-    result = execute_request(request)
-    reader = MDSReader(path=result.output_dir, convert_raw=dict)
-    record = reader[0]
-    assert record == {"scene_number": 0, "dataset_id": -1, "feature_shape": [1, 3, 7]}
-
-
 def test_parallel_execution_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
     _patch_get_demo_descriptor(monkeypatch)
@@ -526,6 +485,47 @@ def test_parallel_execution_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     assert manifest.prediction_task.prediction_origin == 2
     assert manifest.prediction_task.prediction_end == 3
     assert manifest.dataset_names == ("demo",)
+
+
+def test_parallel_mds_finalizes_worker_shards(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pytest.importorskip("streaming")
+    from prejectory.io.readers import MDSReader  # ruff: ignore[import-outside-top-level]
+
+    _patch_get_demo_descriptor(monkeypatch)
+    request = _request(
+        tmp_path,
+        storage_backend=StorageBackend.MDS,
+        overrides=DatasetConfigPatch(runtime=RuntimePatch(jobs=2)),
+    )
+
+    result = execute_request(request)
+
+    assert result.stats.written_scenes == 1
+    reader = MDSReader(path=result.output_dir)
+    assert len(reader) == 1
+    assert reader[0].scene_number == 0
+
+
+def test_parallel_finalizes_every_worker(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_get_demo_descriptor(monkeypatch)
+    plan = resolve_request(
+        _request(tmp_path, overrides=DatasetConfigPatch(runtime=RuntimePatch(jobs=2)))
+    )
+    provider = WorkerWriterProvider(partial(_create_tracking_writer, tmp_path))
+
+    with open_executor(plan) as executor:
+        _ = executor.execute(provider)
+
+    assert {path.name for path in tmp_path.glob("worker-*.txt")} == {
+        "worker-1.txt",
+        "worker-2.txt",
+    }
 
 
 def test_execute_request_reports_cleanup_summary(
@@ -606,7 +606,7 @@ def test_failed_writer_is_not_counted_as_written(
 ) -> None:
     _patch_get_demo_descriptor(monkeypatch)
     plan = resolve_request(_request(tmp_path))
-    writer_provider = WorkerWriterProvider(_create_failing_writer)
+    writer_provider = WorkerWriterProvider(_create_failing_writer)  # pyright: ignore[reportArgumentType]
 
     with open_executor(plan) as executor:
         with pytest.raises(RuntimeError, match="intentional writer failure"):

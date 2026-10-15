@@ -7,6 +7,7 @@ Ego metadata is batch-safe: `ego_agent_id` uses -1 when absent and
 from __future__ import annotations
 
 from collections.abc import Callable
+from copy import copy as shallow_copy
 from typing import TYPE_CHECKING, Generic
 
 from typing_extensions import override
@@ -233,7 +234,9 @@ def _hetero_with_common_data(
 
 
 def _pad_full_hetero_time_axes(record: HeteroData, *, horizon_frames: int) -> HeteroData:
-    padded = record.clone()
+    # Copy attribute stores before replacing padded fields. PyG concatenates
+    # tensors into independent batch storage in Batch.from_data_list().
+    padded = shallow_copy(record)
     padded["agent"].features = _pad_along_dim(
         record["agent"].features,
         target=horizon_frames,
@@ -253,7 +256,7 @@ def _pad_forecast_hetero_time_axes(
     history_frames: int,
     future_frames: int,
 ) -> HeteroData:
-    padded = record.clone()
+    padded = shallow_copy(record)
     padded["agent"].history_features = _pad_left_along_dim(
         record["agent"].history_features,
         target=history_frames,

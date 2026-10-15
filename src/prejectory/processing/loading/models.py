@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, ClassVar, Generic
+from typing import TYPE_CHECKING, ClassVar, Generic, Self
 
 from pydantic import BaseModel, ConfigDict
-from typing_extensions import Self
 
 from prejectory.core.typing import SourceId, SourceT
 from prejectory.processing.maps import MapReference
@@ -14,6 +13,7 @@ from prejectory.processing.maps import MapReference
 if TYPE_CHECKING:
     import polars as pl
 
+    from prejectory.config.models import DatasetConfig
     from prejectory.core.categories import DatasetSplit
 
 
@@ -49,6 +49,10 @@ class LoaderOptionsModel(BaseModel):
     """Base model for dataset-specific loader options."""
 
     model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True, extra="forbid")
+
+    def validate_config(self, config: DatasetConfig) -> None:
+        """Validate dataset-owned constraints on the resolved processing config."""
+        _ = self, config
 
     @classmethod
     def parse(cls, payload: dict[str, object] | None = None) -> Self:

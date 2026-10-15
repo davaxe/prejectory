@@ -1,43 +1,25 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
-from typing import TYPE_CHECKING, Generic, Protocol, TypeAlias, runtime_checkable
+from enum import StrEnum
+from typing import TYPE_CHECKING, Generic, Protocol, runtime_checkable
 
 from typing_extensions import TypeVar, override
 
 from prejectory.core.categories import DatasetSplit
-from prejectory.core.scene import Scene
 from prejectory.io.records import SceneRecord
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
+
+    from prejectory.core.scene import Scene
 
 
 RecordT = TypeVar("RecordT", default=SceneRecord)
 
 
-RecordTransform: TypeAlias = Callable[[SceneRecord], RecordT]
-"""Callable that converts a canonical `SceneRecord` into a persisted payload.
-
-This is the preferred customization hook for user-defined persisted payload
-layouts because it preserves Prejectory's standard output semantics before
-materializing the custom payload.
-"""
-
-
-SceneTransform: TypeAlias = Callable[[Scene], RecordT]
-"""Callable that converts a runtime `Scene` directly into a persisted payload.
-
-This is an advanced escape hatch for users who intentionally want to bypass
-`SceneRecord` encoding. Callers using this hook own schema conversion,
-dtype policy, recentering, map resolution, and reader compatibility.
-"""
-
-
-class StorageBackend(str, Enum):
+class StorageBackend(StrEnum):
     """Supported persisted storage backends."""
 
     MDS = "mds"
@@ -52,6 +34,8 @@ class StorageBackend(str, Enum):
     """
     PICKLE = "pickle"
     """Pickle storage backend. Requires no extra dependencies."""
+    ZARR = "zarr"
+    """Chunked Zarr storage backend with random scene access."""
     NULL = "null"
     """Null storage backend that discards all data. Useful for testing."""
 
@@ -103,6 +87,10 @@ class DatasetWriter(Protocol):
         """Finalize worker-local state once the current worker is done."""
         _ = self
 
+    def flush_local(self) -> None:
+        """Flush worker-local state to persisted storage without finalizing."""
+        _ = self
+
 
 class WriterProvider(ABC):
     """Provider that owns writer lifecycle for one execution run."""
@@ -143,14 +131,3 @@ def split_directory_name(split: DatasetSplit | str | None) -> str:
     if split is None:
         return "unsplit"
     return split.value if isinstance(split, DatasetSplit) else str(split)
-
-
-def validate_transform_choice(
-    *,
-    record_transform: RecordTransform[object] | None,
-    scene_transform: SceneTransform[object] | None,
-) -> None:
-    """Validate that at most one output customization hook is configured."""
-    if record_transform is not None and scene_transform is not None:
-        msg = "Use either `record_transform` or `scene_transform`, not both."
-        raise ValueError(msg)

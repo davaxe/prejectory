@@ -1,4 +1,6 @@
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from prejectory.config.models import DatasetConfig
 from prejectory.core.categories import DatasetSplit
@@ -16,6 +18,9 @@ from prejectory.datasets.shared.presets import (
     temporal_support,
 )
 from prejectory.datasets.shared.resources import named_shared_map_resources_factory
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _interaction_map_paths(root: Path) -> list[tuple[str, Path]]:

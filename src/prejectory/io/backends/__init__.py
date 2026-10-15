@@ -8,6 +8,7 @@ Built-in backends:
 
 - `pickle` writes one pickled `SceneRecord` per scene
 - `mds` writes Mosaic Streaming shards
+- `zarr` writes chunked worker-local array shards
 - `null` executes the full pipeline but discards scene data
 
 Custom backends can be added by registering another backend builder with

@@ -4,7 +4,7 @@ The base `prejectory` package is intentionally small. Install it first, then add
 
 ## Requirements
 
-- Python `>=3.10`
+- Python `>=3.11`
 - `pip` or `uv`
 
 ## Install the base package
@@ -30,6 +30,7 @@ Use extras to enable additional functionality.
 ```bash
 pip install "prejectory[cli]"
 pip install "prejectory[cli,mds]"
+pip install "prejectory[cli,zarr]"
 pip install "prejectory[torch]"
 pip install "prejectory[pyg]"
 ```
@@ -37,7 +38,7 @@ pip install "prejectory[pyg]"
 You can combine extras in one command:
 
 ```bash
-pip install "prejectory[cli,mds,torch,pyg]"
+pip install "prejectory[cli,mds,zarr,torch,pyg]"
 ```
 
 ## Available extras
@@ -46,11 +47,11 @@ pip install "prejectory[cli,mds,torch,pyg]"
 | --- | --- |
 | `cli` | Typer/Rich command-line interface |
 | `mds` | MDS writer backend and [`MDSReader`](../reference/api/io/readers.md#prejectory.io.readers.MDSReader) |
+| `zarr` | Zarr writer backend and [`ZarrReader`](../reference/api/io/readers.md#prejectory.io.readers.ZarrReader) |
 | `torch` | Torch dataset adapters such as [`TorchSceneDataset`](../reference/api/io/adapters.md#prejectory.io.adapters.TorchSceneDataset) |
 | `pyg` | PyTorch Geometric adapters such as [`HeteroSceneDataset`](../reference/api/io/adapters.md#prejectory.io.adapters.HeteroSceneDataset) |
 | `viz` | Reserved placeholder extra for future visualization support. It currently adds no dependencies. |
 | `waymo` | Optional dependencies for the Waymo dataset |
-| `lyft` | Optional dependencies for the Lyft dataset |
 | `ad4che` | Optional dependencies for the AD4CHE dataset |
 
 ## Recommended installs
@@ -60,6 +61,7 @@ pip install "prejectory[cli,mds,torch,pyg]"
 | Basic processing with pickle output | `pip install prejectory` |
 | CLI workflows | `pip install "prejectory[cli]"` |
 | MDS output and reading | `pip install "prejectory[cli,mds]"` |
+| Zarr output and reading | `pip install "prejectory[cli,zarr]"` |
 | Torch training pipelines | `pip install "prejectory[torch]"` |
 | PyG graph pipelines | `pip install "prejectory[pyg]"` |
 
@@ -69,6 +71,7 @@ pip install "prejectory[cli,mds,torch,pyg]"
 | --- | --- |
 | [`PickleReader`](../reference/api/io/readers.md#prejectory.io.readers.PickleReader) | none |
 | [`MDSReader`](../reference/api/io/readers.md#prejectory.io.readers.MDSReader) | `mds` |
+| [`ZarrReader`](../reference/api/io/readers.md#prejectory.io.readers.ZarrReader) | `zarr` |
 | [`TorchSceneDataset`](../reference/api/io/adapters.md#prejectory.io.adapters.TorchSceneDataset) | `torch` |
 | [`HeteroSceneDataset`](../reference/api/io/adapters.md#prejectory.io.adapters.HeteroSceneDataset) | `pyg` |
 
@@ -79,7 +82,6 @@ Most built-in datasets are available with the base install. Some datasets requir
 | Dataset | Required extra |
 | --- | --- |
 | `waymo` | `waymo` |
-| `lyft` | `lyft` |
 | `ad4che` | `ad4che` |
 
 The dataset registry only exposes datasets whose dependencies are installed. As a result, `prejectory available` reflects the datasets supported by your current environment.
