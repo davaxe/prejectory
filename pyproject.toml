@@ -12,7 +12,7 @@ authors = [
 ]
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 dependencies = [
     "numpy>=1.24.0",
@@ -23,15 +23,21 @@ dependencies = [
     "rich>=14.3.3",
 ]
 
-keywords = ["autonomous driving", "trajectory data", "data processing", "datasets", "machine learning"]
+keywords = [
+    "autonomous driving",
+    "trajectory data",
+    "data processing",
+    "datasets",
+    "machine learning",
+]
 
 classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Typing :: Typed",
 ]
@@ -49,38 +55,22 @@ prejectory = "prejectory.__main__:main"
 # viz = ["prejectory-viz"]
 waymo = ["protobuf>=4.25.8"]
 ad4che = ["opencv-python"]
-mds = ["mosaicml-streaming>=0.13.0"]
+mds = ["streaming-community>=0.14.2,<0.15"]
 zarr = ["zarr>=3.1,<4"]
 torch = ["torch>=2.0.0"]
 pyg = ["torch>=2.0.0", "torch-geometric>=2.7.0"]
 cli = ["typer>=0.24.1"]
 
 [dependency-groups]
-test = [
-    "coverage>=7.13.5",
-    "pytest>=7.0",
-    "pytest-benchmark[histogram]>=5.1",
-]
+test = ["coverage>=7.13.5", "pytest>=7.0", "pytest-benchmark[histogram]>=5.1"]
 
-lint = [
-    "ruff>=0.11",
-]
+lint = ["ruff>=0.11"]
 
-typecheck = [
-    "basedpyright>=1.0.0",
-    "scipy-stubs",
-    "ty>=0.0.99",
-]
+typecheck = ["basedpyright>=1.0.0", "scipy-stubs", "ty>=0.0.99"]
 
-build = [
-    "build>=1.2.2",
-    "twine>=6.2.0",
-]
+build = ["build>=1.2.2", "twine>=6.2.0"]
 
-docs = [
-    "mkdocstrings[python]>=1.0.3",
-    "zensical>=0.0.30",
-]
+docs = ["mkdocstrings[python]>=1.0.3", "zensical>=0.0.30"]
 
 dev = [
     { include-group = "test" },
@@ -113,9 +103,7 @@ filterwarnings = [
 
 [tool.coverage.run]
 branch = true
-omit = [
-    "src/prejectory/datasets/*/protos/*.py",
-]
+omit = ["src/prejectory/datasets/*/protos/*.py"]
 
 [tool.ty.src]
 # Match generated protobuf modules and proto directories at any depth.
@@ -130,6 +118,7 @@ fail_under = 50
 directory = "htmlcov"
 
 [tool.ruff]
+target-version = "py312"
 # Exclude proto compiled files from linting and formatting
 extend-exclude = ["*_pb2.py", "*_pb2_grpc.py", "*_pb2.pyi", "protos/*"]
 line-length = 100
@@ -138,6 +127,11 @@ preview = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    # Keep the existing typing syntax; modernizing it is separate from Python support.
+    "deprecated-import",
+    "non-pep695-type-alias",
+    "non-pep695-generic-class",
+    "non-pep695-generic-function",
     "multi-line-summary-second-line",
     "missing-trailing-comma",
     "magic-value-comparison",
@@ -161,8 +155,19 @@ pydocstyle = { convention = "numpy" }
 ban-relative-imports = "all"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["D", "implicit-namespace-package", "assert", "import-private-name"]
-"examples/**/*.py" = ["D", "implicit-namespace-package", "assert", "import-private-name", "print"]
+"tests/**/*.py" = [
+    "D",
+    "implicit-namespace-package",
+    "assert",
+    "import-private-name",
+]
+"examples/**/*.py" = [
+    "D",
+    "implicit-namespace-package",
+    "assert",
+    "import-private-name",
+    "print",
+]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -172,7 +177,7 @@ skip-magic-trailing-comma = false
 split-on-trailing-comma = false
 
 [tool.basedpyright]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 pythonPlatform = "All"
 typeCheckingMode = "recommended"
 include = ["src", "tests"]
@@ -195,6 +200,9 @@ reportExplicitAny = false
 reportMissingTypeStubs = false
 reportPrivateImportUsage = false
 reportUnknownMemberType = false
+
+[tool.uv]
+override-dependencies = ["mosaicml-streaming ; sys_platform == 'never'"]
 
 # [tool.uv.sources]
 # prejectory-viz = { path = "../prejectory-viz", editable = true }

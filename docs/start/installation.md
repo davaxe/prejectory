@@ -4,8 +4,22 @@ The base `prejectory` package is intentionally small. Install it first, then add
 
 ## Requirements
 
-- Python `>=3.11`
+- Python `>=3.12`
 - `pip` or `uv`
+
+Python 3.12 through 3.14 are supported, including all optional extras. Python
+3.15 is experimental: the base package and MDS tests pass, but the `zarr` extra
+currently lacks a compatible `numcodecs` wheel and its default source build fails.
+
+The `mds` extra uses [streaming-community](https://github.com/secondwindoss/streaming-community),
+a maintained fork of MosaicML Streaming with the same `streaming` imports and MDS
+format. It supports modern NumPy versions, allowing normal installation on Python
+3.14 without compiling NumPy.
+
+If migrating an existing environment manually, uninstall `mosaicml-streaming`
+before installing the `mds` extra: both distributions provide the same `streaming`
+package and must not be installed together. For repository development,
+`uv sync --all-extras --group dev` handles the replacement using the updated lockfile.
 
 ## Install the base package
 

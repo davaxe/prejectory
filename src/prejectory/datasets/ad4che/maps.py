@@ -95,7 +95,7 @@ class AD4CHEMapBuilder(FeatureMapBuilder):
         for cnt in contours:
             if len(cnt) <= 1:
                 continue
-            coords = cnt[:, 0, :] * self.pixel_to_meter
+            coords = np.asarray(cnt[:, 0, :], dtype=np.float64) * self.pixel_to_meter
             coords = _spatial_downsample_polyline(coords, d_min=self.spatial_ds)
             if len(coords) < 2:
                 continue

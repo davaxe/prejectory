@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -463,7 +463,7 @@ def _build_pickle_reader(
 
 
 def _to_numpy(tensor: torch.Tensor) -> npt.NDArray[Any]:
-    return cast("npt.NDArray[Any]", tensor.detach().cpu().numpy())
+    return tensor.detach().cpu().numpy()
 
 
 def _assert_tensor_allclose(tensor: torch.Tensor, expected: npt.NDArray[Any]) -> None:

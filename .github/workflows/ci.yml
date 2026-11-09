@@ -12,11 +12,12 @@ jobs:
   test:
     name: Tests / Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.python-version == '3.15' }}
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.13"]
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
 
     steps:
       - name: Check out repository
@@ -32,7 +33,30 @@ jobs:
         run: uv sync --frozen --group test
 
       - name: Run tests
-        run: uv run pytest tests --ignore=tests/benchmarks -m "not slow and not dataset"
+        run: uv run --no-sync pytest tests --ignore=tests/benchmarks -m "not slow and not dataset"
+
+  optional-test:
+    name: Optional extras / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.14"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install supported optional extras
+        run: uv sync --frozen --group test --all-extras --no-build-package numpy --no-build-package numcodecs
+
+      - name: Run tests
+        run: uv run --no-sync pytest tests --ignore=tests/benchmarks -m "not slow and not dataset"
 
   coverage:
     name: Coverage
@@ -103,6 +127,11 @@ jobs:
           - name: Basedpyright
             group: typecheck
             command: uv run basedpyright src tests
+            all_extras: true
+
+          - name: Ty
+            group: typecheck
+            command: uv run ty check
             all_extras: true
 
           - name: Build package
