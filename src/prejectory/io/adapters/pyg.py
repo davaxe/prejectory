@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
     from prejectory.io.records import PredictionBounds
 
-HeteroDataTransform = Callable[[HeteroData], HeteroData]
+type HeteroDataTransform = Callable[[HeteroData], HeteroData]
 
 
 class HeteroSceneDataset[ReaderT: DatasetReader[SceneRecord]](PyGDataset, Dataset[HeteroData]):

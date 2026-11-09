@@ -80,7 +80,7 @@ class IncludeCategories(CleanupRuleBase):
         return pl.col(ctx.columns.category).is_in(self.categories)
 
 
-CleanupRule = Annotated[
+type CleanupRule = Annotated[
     PruneByRule | ExcludeCategories | IncludeCategories,
     Field(discriminator="rule"),
 ]

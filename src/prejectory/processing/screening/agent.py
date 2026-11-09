@@ -241,7 +241,7 @@ def passing_requirement_expr(
     )
 
 
-AgentCheckRule = Annotated[
+type AgentCheckRule = Annotated[
     MinDistance
     | AgentMaxMissingFrames
     | AgentRequireFrames

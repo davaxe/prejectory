@@ -36,7 +36,7 @@ class ConversionContext:
     group_by: str | tuple[str] | None = "id"
 
 
-DerivationApply = Callable[[pl.LazyFrame, ConversionContext], pl.LazyFrame]
+type DerivationApply = Callable[[pl.LazyFrame, ConversionContext], pl.LazyFrame]
 
 
 @dataclass(slots=True, frozen=True)

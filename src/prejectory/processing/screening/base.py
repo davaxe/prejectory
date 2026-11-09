@@ -31,11 +31,11 @@ def coerce_frame_set(value: FrameInput) -> frozenset[int]:
     return frozenset(int(item) for item in values)
 
 
-FrameInput = int | Iterable[int]
+type FrameInput = int | Iterable[int]
 """One or more frame indices relative to the start of the scene."""
-FrameSet = Annotated[frozenset[int], Field(min_length=1), BeforeValidator(coerce_frame_set)]
+type FrameSet = Annotated[frozenset[int], Field(min_length=1), BeforeValidator(coerce_frame_set)]
 """Set of frame indices relative to the start of the scene."""
-AgentSet = Annotated[
+type AgentSet = Annotated[
     frozenset[AgentCategory],
     Field(min_length=1),
     BeforeValidator(lambda v: coerce_agent_categories(v, frozenset)),
@@ -171,7 +171,7 @@ class ScreeningContext:
         )
 
 
-RuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]+$")]
+type RuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]+$")]
 
 
 class Rule(ScreeningModel, ABC):

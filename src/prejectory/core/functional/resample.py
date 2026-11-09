@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from enum import StrEnum
 from fractions import Fraction
-from typing import TYPE_CHECKING, Final, Literal, cast
+from typing import TYPE_CHECKING, Final, Literal, TypedDict, Unpack, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -28,9 +28,11 @@ if TYPE_CHECKING:
 
 SEGMENT_COLUMN: Final = "_resample_segment"
 
-EmittedDerivative = Literal["velocity", "acceleration"]
-Interpolator = PPoly
-InterpolatorFactory = Callable[[npt.NDArray[np.float64], npt.NDArray[np.float64]], Interpolator]
+type EmittedDerivative = Literal["velocity", "acceleration"]
+type Interpolator = PPoly
+type InterpolatorFactory = Callable[
+    [npt.NDArray[np.float64], npt.NDArray[np.float64]], Interpolator
+]
 
 
 class ResampleMethod(StrEnum):
@@ -47,6 +49,17 @@ def _velocity_column_name(coordinate: str) -> str:
 
 def _acceleration_column_name(coordinate: str) -> str:
     return f"a{coordinate}" if len(coordinate) == 1 else f"acceleration_{coordinate}"
+
+
+class _ResampleUpdates(TypedDict, total=False):
+    up: int
+    down: int
+    method: ResampleMethod
+    coordinates: tuple[str, ...]
+    emit_velocity: bool
+    emit_acceleration: bool
+    max_gap: int
+    sample_time: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,7 +110,7 @@ class ResampleSpec:
         """Return a spec for linear resampling."""
         return cls(up=up, down=down, method=ResampleMethod.LINEAR)
 
-    def _with_update(self, **kwargs: object) -> ResampleSpec:
+    def _with_update(self, **kwargs: Unpack[_ResampleUpdates]) -> ResampleSpec:
         return replace(self, **kwargs)
 
     def with_sample_time(self, sample_time: float) -> ResampleSpec:

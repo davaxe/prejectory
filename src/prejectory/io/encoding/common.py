@@ -16,7 +16,9 @@ from prejectory.io.records import ForecastRecord, PredictionBounds, SceneRecord
 if TYPE_CHECKING:
     from prejectory.core.maps import MapGraph
     from prejectory.core.scene import Scene, TrajectorySchema
-    from prejectory.core.typing import FloatDType
+
+
+type FloatDType = type[np.float32 | np.float64]
 
 
 class MapRecord[FloatScalarT: (np.float32, np.float64)](TypedDict):
@@ -28,9 +30,9 @@ class MapRecord[FloatScalarT: (np.float32, np.float64)](TypedDict):
     map_edge_types: npt.NDArray[np.int32]
 
 
-MapRecordF32 = MapRecord[np.float32]
-MapRecordF64 = MapRecord[np.float64]
-AnyMapRecord = MapRecord[np.float32] | MapRecord[np.float64]
+type MapRecordF32 = MapRecord[np.float32]
+type MapRecordF64 = MapRecord[np.float64]
+type AnyMapRecord = MapRecord[np.float32] | MapRecord[np.float64]
 
 
 def encode_scene_record(

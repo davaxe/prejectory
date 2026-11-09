@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-WindowPolicy = Literal["strict", "anchored", "partial"]
+type WindowPolicy = Literal["strict", "anchored", "partial"]
 
 _WINDOW_START_COLUMN = "_prejectory_window_start"
 _WINDOW_FIRST_COLUMN = "_prejectory_window_first"

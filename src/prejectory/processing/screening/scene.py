@@ -141,7 +141,7 @@ class SceneMaxMissingFrames(SceneCheckRuleBase):
         return (frame_span - unique_frame_count) <= self.maximum
 
 
-SceneCheckRule = Annotated[
+type SceneCheckRule = Annotated[
     AgentRange | CategoryRange | SceneRequireFrames | SceneRequireWindow | SceneMaxMissingFrames,
     Field(discriminator="rule"),
 ]

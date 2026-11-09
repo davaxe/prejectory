@@ -15,7 +15,7 @@ from prejectory.core.errors import TrajectorySchemaError
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-FieldStr = Literal["frame", "id", "agent_category", "x", "y", "vx", "vy", "ax", "ay", "yaw"]
+type FieldStr = Literal["frame", "id", "agent_category", "x", "y", "vx", "vy", "ax", "ay", "yaw"]
 
 
 class TrajectoryField(IntFlag):

@@ -14,7 +14,9 @@ if TYPE_CHECKING:
 
     from prejectory.config.models import DatasetConfig
     from prejectory.core.categories import DatasetSplit
-    from prejectory.core.typing import SourceId
+
+
+type SourceId = str | int
 
 
 @dataclass(slots=True, frozen=True)

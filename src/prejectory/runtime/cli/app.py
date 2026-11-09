@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
 app: typer.Typer = typer.Typer(help="Trajectory data processing toolkit.", no_args_is_help=True)
 
+# Typer currently requires direct typing objects rather than PEP 695 alias objects.
 ReadStrategy = Literal["all", "native"]
 AssignStrategy = Literal["none", "preserve-native", "scene", "source", "time", "shuffled-time"]
 

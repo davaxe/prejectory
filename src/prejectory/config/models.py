@@ -28,20 +28,20 @@ from prejectory.processing.screening.agent import AgentCheckRule  # ruff: ignore
 from prejectory.processing.screening.cleanup import CleanupRule  # ruff: ignore[typing-only-first-party-import]
 from prejectory.processing.screening.scene import SceneCheckRule  # ruff: ignore[typing-only-first-party-import]
 
-EdgeTypes = Annotated[
+type EdgeTypes = Annotated[
     frozenset[EdgeType],
     BeforeValidator(lambda v: coerce_edge_types(v, frozenset)),
 ]
 
-FloatDType = type[np.float32] | type[np.float64]
-OutputPrecision = Literal["float32", "float64"]
+type FloatDType = type[np.float32 | np.float64]
+type OutputPrecision = Literal["float32", "float64"]
 """Accepted floating-point precision labels for serialized numeric arrays.
 
 The chosen label is later resolved to the corresponding NumPy dtype when
 writers materialize trajectory tensors.
 """
 
-TrajectorySchemaLike = TrajectorySchema | str | TrajectorySchemaDefinition
+type TrajectorySchemaLike = TrajectorySchema | str | TrajectorySchemaDefinition
 """User-facing trajectory schema inputs accepted by output-related config.
 
 Callers may provide a registered schema object directly, reference a schema by
@@ -49,14 +49,14 @@ name, or inline a full schema definition that resolves to a
 [`TrajectorySchema`][prejectory.core.scene.TrajectorySchema].
 """
 
-ReadStrategy = Literal["all", "native"]
+type ReadStrategy = Literal["all", "native"]
 """Supported runtime read-strategy override names accepted by the CLI layer.
 
 The string values map directly to the concrete read config models in
 [`prejectory.config.models`][].
 """
 
-AssignStrategy = Literal["none", "preserve-native", "scene", "source", "time", "shuffled-time"]
+type AssignStrategy = Literal["none", "preserve-native", "scene", "source", "time", "shuffled-time"]
 """Supported runtime assignment-strategy override names accepted by the CLI layer.
 
 The string values map directly to the concrete assignment config models in
@@ -99,7 +99,7 @@ class ReadNative(ResolvedConfig):
     """Native dataset partitions to read from the DatasetSource dataset."""
 
 
-ReadConfig = Annotated[ReadAll | ReadNative, Field(discriminator="strategy")]
+type ReadConfig = Annotated[ReadAll | ReadNative, Field(discriminator="strategy")]
 
 
 class NoAssign(ResolvedConfig):
@@ -145,7 +145,7 @@ class ShuffledTimeBlockAssign(ResolvedConfig):
     ratio: SplitWeights
 
 
-AssignConfig = Annotated[
+type AssignConfig = Annotated[
     NoAssign
     | PreserveNativeAssign
     | SceneAssign
@@ -343,7 +343,7 @@ class MapEdgeTypeRules(ResolvedConfig):
         return {EdgeType.from_value(k): EdgeType.from_value(val) for k, val in v.items()}
 
 
-MapExtraction = Annotated[
+type MapExtraction = Annotated[
     CircularExtraction
     | BoundingBoxExtraction
     | FullMapExtraction

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import batched
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
@@ -118,10 +119,11 @@ class Argoverse1Loader(SceneLoader[list[Path], Argoverse1LoaderOptions]):
         if not data_dir.is_dir():
             return
         files = sorted(data_dir.glob("*.csv"))
-        for start in range(0, len(files), self.loader_options.file_batch_size):
+        batch_size = self.loader_options.file_batch_size
+        for batch_index, batch in enumerate(batched(files, batch_size)):
             yield DatasetSource(
-                identifier=start,
-                payload=files[start : start + self.loader_options.file_batch_size],
+                identifier=batch_index * batch_size,
+                payload=list(batch),
             )
 
     def _count_sources(self, data_dir: Path) -> int:

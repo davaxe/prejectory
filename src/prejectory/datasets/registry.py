@@ -37,16 +37,16 @@ if TYPE_CHECKING:
 _REGISTRY: dict[str, DatasetDescriptor] = {}
 logger = logging.getLogger(__name__)
 
-SourceTemporalUnit = Literal["recording", "scenario", "case", "scene", "batch", "unknown"]
+type SourceTemporalUnit = Literal["recording", "scenario", "case", "scene", "batch", "unknown"]
 """Logical sequence unit represented by one source before scene windowing."""
 
-FrameBoundConfidence = Literal["exact", "documented", "observed", "estimated", "unknown"]
+type FrameBoundConfidence = Literal["exact", "documented", "observed", "estimated", "unknown"]
 """Confidence level for descriptor-reported source-frame bounds."""
 
-WindowPolicyName = Literal["strict", "anchored", "partial"]
+type WindowPolicyName = Literal["strict", "anchored", "partial"]
 """Supported sliding-window completeness policies."""
 
-WindowValidationMode = Literal["error", "warn", "off"]
+type WindowValidationMode = Literal["error", "warn", "off"]
 """How request resolution should handle windows outside descriptor bounds."""
 
 

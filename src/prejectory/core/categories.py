@@ -150,13 +150,13 @@ class AgentCategory(IntEnum):
         return cls.from_string(value)
 
 
-AgentCategoryLike = int | str | AgentCategory
+type AgentCategoryLike = int | str | AgentCategory
 """Type for specifying a single agent category."""
-AgentCategoryInput = AgentCategoryLike | Iterable[AgentCategoryLike]
+type AgentCategoryInput = AgentCategoryLike | Iterable[AgentCategoryLike]
 """Input type for specifying one or more agent categories."""
-EdgeTypeLike = int | str | EdgeType
+type EdgeTypeLike = int | str | EdgeType
 """Type for specifying a single edge type."""
-EdgeTypeInput = EdgeTypeLike | Iterable[EdgeTypeLike]
+type EdgeTypeInput = EdgeTypeLike | Iterable[EdgeTypeLike]
 """Input type for specifying one or more edge types."""
 
 

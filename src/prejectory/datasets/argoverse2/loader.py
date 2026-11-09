@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import batched
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
@@ -40,10 +41,11 @@ class Argoverse2Loader(SceneLoader[list[Path], Argoverse2LoaderOptions]):
         if not data_dir.is_dir():
             return
         parquet_files = sorted(data_dir.glob("*/*.parquet"))
-        for i in range(0, len(parquet_files), self.loader_options.file_batch_size):
+        batch_size = self.loader_options.file_batch_size
+        for batch_index, batch in enumerate(batched(parquet_files, batch_size)):
             yield DatasetSource(
-                identifier=i,
-                payload=parquet_files[i : i + self.loader_options.file_batch_size],
+                identifier=batch_index * batch_size,
+                payload=list(batch),
             )
 
     @override

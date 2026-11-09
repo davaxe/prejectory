@@ -24,6 +24,7 @@ class SplitCounts(TypedDict, total=True):
     test: int
 
 
+# Keep a direct Literal: ty rejects PEP 695 aliases as writable TypedDict keys.
 SplitKey = Literal["unsplit", "train", "val", "test"]
 
 

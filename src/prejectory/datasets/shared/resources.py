@@ -16,10 +16,10 @@ if TYPE_CHECKING:
     from multiprocessing.shared_memory import SharedMemory
 
 
-MapBuilder = Callable[[Path, MapConfig], MapGraph]
-NamedPathsFactory = Callable[[Path], Iterable[tuple[str | None, Path]]]
-SinglePathFactory = Callable[[Path], Path]
-MapProviderFactory = Callable[
+type MapBuilder = Callable[[Path, MapConfig], MapGraph]
+type NamedPathsFactory = Callable[[Path], Iterable[tuple[str | None, Path]]]
+type SinglePathFactory = Callable[[Path], Path]
+type MapProviderFactory = Callable[
     [Path, ScenesConfig, MapConfig | None],
     AbstractContextManager[MapProvider | None],
 ]

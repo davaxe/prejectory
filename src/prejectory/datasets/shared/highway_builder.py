@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
 
-LaneId = int | str
+type LaneId = int | str
 
 
 @dataclass(slots=True, frozen=True)

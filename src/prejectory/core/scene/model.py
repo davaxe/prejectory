@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from prejectory.core.categories import DatasetSplit
 
 
-MapResolver = Callable[["Scene"], MapGraph | None]
+type MapResolver = Callable[[Scene], MapGraph | None]
 """Callable signature used to materialize a scene's map graph lazily.
 
 Resolvers are attached to [`Scene`][prejectory.core.scene.Scene] instances so
