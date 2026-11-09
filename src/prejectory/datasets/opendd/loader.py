@@ -11,7 +11,7 @@ import polars as pl
 from prejectory.core.categories import AgentCategory
 from prejectory.core.scene import POSITIONS_ONLY
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -31,7 +31,7 @@ def _table_query(table_name: str) -> str:
     """  # ruff: ignore[hardcoded-sql-expression]
 
 
-class OpenDDLoader(SceneLoader[tuple[Path, str]]):
+class OpenDDLoader(SceneLoader[tuple[Path, str], NoLoaderOptions]):
     """Loader for OpenDD data split across multiple SQLite databases."""
 
     def _db_paths(self) -> Iterable[Path]:

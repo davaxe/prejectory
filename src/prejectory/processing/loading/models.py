@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, ClassVar, Generic, Self
+from typing import TYPE_CHECKING, ClassVar, Self
 
 from pydantic import BaseModel, ConfigDict
 
-from prejectory.core.typing import SourceId, SourceT
 from prejectory.processing.maps import MapReference
 
 if TYPE_CHECKING:
@@ -15,6 +14,7 @@ if TYPE_CHECKING:
 
     from prejectory.config.models import DatasetConfig
     from prejectory.core.categories import DatasetSplit
+    from prejectory.core.typing import SourceId
 
 
 @dataclass(slots=True, frozen=True)
@@ -27,9 +27,8 @@ class LoadedSourceFrame:
     ego_agent_id: int | None = None
 
 
-# PEP 696 defaults require Python 3.13 in the new generic syntax.
 @dataclass(slots=True, frozen=True)
-class DatasetSource(Generic[SourceT]):  # ruff: ignore[non-pep695-generic-class]
+class DatasetSource[SourceT]:
     """Lightweight unit of raw input that yields one or more scenes."""
 
     identifier: SourceId

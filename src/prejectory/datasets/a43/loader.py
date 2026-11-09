@@ -10,7 +10,7 @@ import polars as pl
 from prejectory.core.categories import AgentCategory
 from prejectory.core.scene import POSITIONS_VELOCITY_ACCELERATION
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from prejectory.core.scene import TrajectorySchema
 
 
-class A43Loader(SceneLoader[Path]):
+class A43Loader(SceneLoader[Path, NoLoaderOptions]):
     """Scene loader for the A43 dataset."""
 
     _dt: ClassVar[float] = 0.1

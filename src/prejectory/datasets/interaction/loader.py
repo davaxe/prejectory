@@ -11,7 +11,7 @@ from prejectory.core.categories import AgentCategory, DatasetSplit
 from prejectory.core.functional import yaw_from_velocity_expr
 from prejectory.core.scene.schema import POSITIONS_VELOCITY_YAW
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 _NATIVE_SPLITS = (DatasetSplit.TRAIN, DatasetSplit.VAL, DatasetSplit.TEST)
 
 
-class InteractionLoader(SceneLoader[Path]):
+class InteractionLoader(SceneLoader[Path, NoLoaderOptions]):
     """Loader for the INTERACTION dataset."""
 
     def _sources_from_dir(self, data_dir: Path) -> Iterable[DatasetSource[Path]]:

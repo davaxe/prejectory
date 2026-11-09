@@ -17,6 +17,7 @@ from prejectory.core.scene import POSITIONS_ONLY, TrajectorySchema
 from prejectory.datasets import DatasetDescriptor, register_dataset
 from prejectory.datasets.shared.presets import benchmark_task
 from prejectory.processing.loading import DatasetSource, LoadedSourceFrame, SceneLoader
+from prejectory.processing.loading.models import NoLoaderOptions
 from prejectory.runtime import ExecutionRequest, resolve_request
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ DATA: str = """frame,id,x,y,category
 """
 
 
-class MiniCsvLoader(SceneLoader[str]):
+class MiniCsvLoader(SceneLoader[str, NoLoaderOptions]):
     @override
     def iter_sources(self) -> Iterable[DatasetSource[str]]:
         # Only one DatasetSource for this simple example.

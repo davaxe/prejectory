@@ -3,21 +3,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Generic, Protocol, override, runtime_checkable
-
-from typing_extensions import TypeVar
+from typing import TYPE_CHECKING, Protocol, override, runtime_checkable
 
 from prejectory.core.categories import DatasetSplit
-from prejectory.io.records import SceneRecord
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     from prejectory.core.scene import Scene
-
-
-# Keep the default on Python 3.12; PEP 695 defaults require Python 3.13.
-RecordT = TypeVar("RecordT", default=SceneRecord)
 
 
 class StorageBackend(StrEnum):
@@ -41,7 +34,7 @@ class StorageBackend(StrEnum):
     """Null storage backend that discards all data. Useful for testing."""
 
 
-class DatasetReader(ABC, Generic[RecordT]):
+class DatasetReader[RecordT](ABC):
     """Abstract base class for scene readers."""
 
     @abstractmethod
@@ -58,7 +51,7 @@ class DatasetReader(ABC, Generic[RecordT]):
         """Return a single decoded scene record."""
 
 
-class IterableDatasetReader(ABC, Generic[RecordT]):
+class IterableDatasetReader[RecordT](ABC):
     """Abstract base class for iterable scene readers.
 
     This is a specialization of `DatasetReader` for backends that support

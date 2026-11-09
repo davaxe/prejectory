@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
     from prejectory.io.base import DatasetReader
+    from prejectory.io.records import SceneRecord
 
 pytestmark = [
     pytest.mark.slow,
@@ -54,7 +55,9 @@ def _consume(
     return ReadResult(tuple(scenes), agents)
 
 
-def _wrap(reader: DatasetReader, adapter: str, view: str, *, iterable: bool = True) -> Any:  # ruff: ignore[any-type]
+def _wrap(
+    reader: DatasetReader[SceneRecord], adapter: str, view: str, *, iterable: bool = True
+) -> Any:  # ruff: ignore[any-type]
     if adapter == "native":
         return reader
     pytest.importorskip("torch")
@@ -72,7 +75,9 @@ def _identity_collate(records: list[Any]) -> list[Any]:
 
 
 @contextmanager
-def _loader(reader: DatasetReader, adapter: str, view: str, workers: int) -> Generator[Any]:
+def _loader(
+    reader: DatasetReader[SceneRecord], adapter: str, view: str, workers: int
+) -> Generator[Any]:
     # Only MDS partitions iterable readers itself. Map adapters let DataLoader
     # partition Pickle/Zarr indices rather than duplicating the epoch per worker.
     dataset = _wrap(reader, adapter, view, iterable=isinstance(reader, IterableDatasetReader))
@@ -161,10 +166,10 @@ def test_fresh_reader_read_speed(
     if pattern == "random":
         np.random.default_rng(SEED).shuffle(indices)
 
-    def setup() -> tuple[tuple[DatasetReader], dict[str, Any]]:
+    def setup() -> tuple[tuple[DatasetReader[SceneRecord]], dict[str, Any]]:
         return (synthetic_corpus.reader(backend),), {}
 
-    def read(fresh_reader: DatasetReader) -> ReadResult:
+    def read(fresh_reader: DatasetReader[SceneRecord]) -> ReadResult:
         return _consume((fresh_reader[i] for i in indices), "native", "full")
 
     benchmark.extra_info.update({

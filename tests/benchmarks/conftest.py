@@ -115,7 +115,9 @@ class SyntheticCorpus:
             self.exports[key] = paths
         return self.exports[key]
 
-    def reader(self, backend: str, streams: int = 1, *, shuffle: bool = False) -> DatasetReader:
+    def reader(
+        self, backend: str, streams: int = 1, *, shuffle: bool = False
+    ) -> DatasetReader[SceneRecord]:
         paths = self.paths(backend, streams)
         if backend == "mds":
             from streaming import Stream  # ruff: ignore[import-outside-top-level]
@@ -136,7 +138,7 @@ class SyntheticCorpus:
 
         return PickleReader(paths[0])
 
-    def validate(self, reader: DatasetReader) -> None:
+    def validate(self, reader: DatasetReader[SceneRecord]) -> None:
         # Validate all arrays and metadata independently of the timed consumption.
         assert len(reader) == SCENES
         for i, expected in enumerate(self.records):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import struct
+from pathlib import Path
 from typing import TYPE_CHECKING, override
 
 import polars as pl
@@ -11,12 +12,11 @@ from prejectory.core.categories import AgentCategory, DatasetSplit
 from prejectory.core.scene import POSITIONS_VELOCITY_YAW
 from prejectory.datasets.waymo.protos import lean_scenario_pb2
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 from prejectory.processing.maps import MapReference
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from pathlib import Path
 
     from prejectory.core.scene import TrajectorySchema
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 _NATIVE_SPLITS = (DatasetSplit.TRAIN, DatasetSplit.VAL, DatasetSplit.TEST)
 
 
-class WaymoLoader(SceneLoader):
+class WaymoLoader(SceneLoader[Path, NoLoaderOptions]):
     """Loader for Waymo scenarios stored in TFRecord format."""
 
     @staticmethod

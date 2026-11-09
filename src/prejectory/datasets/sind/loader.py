@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, override
 
 import polars as pl
@@ -10,16 +11,15 @@ from prejectory.core.categories import AgentCategory
 from prejectory.core.functional import yaw_from_position_expr
 from prejectory.core.scene import CANONICAL
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from pathlib import Path
 
     from prejectory.core.scene import TrajectorySchema
 
 
-class SindLoader(SceneLoader):
+class SindLoader(SceneLoader[Path, NoLoaderOptions]):
     """Loader for the SinD dataset."""
 
     @override

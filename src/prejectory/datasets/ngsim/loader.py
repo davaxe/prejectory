@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, override
 
 import polars as pl
@@ -9,16 +10,15 @@ import polars as pl
 from prejectory.core.categories import AgentCategory
 from prejectory.core.scene import POSITIONS_ONLY
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from pathlib import Path
 
     from prejectory.core.scene import TrajectorySchema
 
 
-class NGSimLoader(SceneLoader):
+class NGSimLoader(SceneLoader[Path, NoLoaderOptions]):
     """Scene loader for the I-80 dataset."""
 
     @override

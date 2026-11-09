@@ -11,7 +11,7 @@ import polars as pl
 from prejectory.core.categories import AgentCategory
 from prejectory.core.scene import CANONICAL, POSITIONS_VELOCITY_ACCELERATION
 from prejectory.processing.loading.base import SceneLoader
-from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame
+from prejectory.processing.loading.models import DatasetSource, LoadedSourceFrame, NoLoaderOptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -28,7 +28,7 @@ class LevelXSourceData:
     y0: float | None = None
 
 
-class LevelXDataLoader(SceneLoader[LevelXSourceData]):
+class LevelXDataLoader(SceneLoader[LevelXSourceData, NoLoaderOptions]):
     """Common recording CSV loader for LevelX-style datasets."""
 
     @staticmethod

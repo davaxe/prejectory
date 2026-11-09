@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Self, cast
+from typing import TYPE_CHECKING, Self, cast
 
-from typing_extensions import TypeVar
-
-from prejectory.core.typing import SourceT
-from prejectory.processing.loading.models import LoaderOptionsModel, NoLoaderOptions
+from prejectory.processing.loading.models import LoaderOptionsModel
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -22,11 +19,7 @@ if TYPE_CHECKING:
     from prejectory.processing.models import LoaderPlan, ReadSelection
 
 
-_LoaderOptionsT = TypeVar("_LoaderOptionsT", bound=LoaderOptionsModel, default=NoLoaderOptions)
-
-
-# PEP 696 defaults require Python 3.13 in the new generic syntax.
-class SceneLoader(ABC, Generic[SourceT, _LoaderOptionsT]):  # ruff: ignore[non-pep695-generic-class]
+class SceneLoader[SourceT, LoaderOptionsT: LoaderOptionsModel](ABC):
     """Base class for turning raw dataset sources into canonical trajectory frames.
 
     Parameters
@@ -44,9 +37,9 @@ class SceneLoader(ABC, Generic[SourceT, _LoaderOptionsT]):  # ruff: ignore[non-p
     -----
     - `SourceT` is the type of the raw DatasetSource data used by this loader, such as
       a file path or database query.
-    - `_LoaderOptionsT` is the type of the dataset-specific options for this
-      loader, which must be a subclass of `LoaderOptionsModel` and defaults to
-      `NoLoaderOptions` for loaders without dataset-specific options.
+    - `LoaderOptionsT` is the type of the dataset-specific options for this
+      loader, which must be a subclass of `LoaderOptionsModel`. Use
+      `NoLoaderOptions` explicitly for loaders without dataset-specific options.
     """
 
     def __init__(
@@ -63,7 +56,7 @@ class SceneLoader(ABC, Generic[SourceT, _LoaderOptionsT]):  # ruff: ignore[non-p
         self.read_config: ReadSelection = request.read
         self.map_config: MapConfig | None = request.map
         self.map_provider: MapProvider | None = map_provider
-        self.loader_options: _LoaderOptionsT = cast("_LoaderOptionsT", request.loader_options)
+        self.loader_options: LoaderOptionsT = cast("LoaderOptionsT", request.loader_options)
 
     def __init_subclass__(cls) -> None:
         """Ensure subclasses implement required DatasetSource enumeration methods."""
