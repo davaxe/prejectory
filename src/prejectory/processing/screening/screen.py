@@ -116,7 +116,7 @@ class ScreeningRuleSet:
         rules: list[CleanupRule] = []
         for rule in cleanup_rules:
             if isinstance(rule, AgentCheckRuleBase):
-                rules.append(PruneByRule(agent_rule=rule))
+                rules.append(PruneByRule(agent_rule=rule))  # ty: ignore[invalid-argument-type]
             else:
                 rules.append(rule)
         return cls(

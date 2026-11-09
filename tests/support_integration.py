@@ -309,7 +309,7 @@ def save_scene_artifacts(
 
     out_dir.mkdir(parents=True, exist_ok=True)
     try:
-        import prejectory_viz as dviz  # pyright: ignore[reportMissingImports]  # ruff: ignore[import-outside-top-level]
+        import prejectory_viz as dviz  # ty: ignore[import-not-found]  # pyright: ignore[reportMissingImports]  # ruff: ignore[import-outside-top-level]
 
         dviz.trajectory_figure(scene).save(out_dir / "trajectory.html")
 

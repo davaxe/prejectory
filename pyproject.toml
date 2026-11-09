@@ -69,6 +69,7 @@ lint = [
 typecheck = [
     "basedpyright>=1.0.0",
     "scipy-stubs",
+    "ty>=0.0.99",
 ]
 
 build = [
@@ -117,7 +118,8 @@ omit = [
 ]
 
 [tool.ty.src]
-exclude =  ["*_pb2.py", "*_pb2_grpc.py", "*_pb2.pyi", "protos/*"]
+# Match generated protobuf modules and proto directories at any depth.
+exclude = ["**/*_pb2.py", "**/*_pb2_grpc.py", "**/*_pb2.pyi", "**/protos/**"]
 
 [tool.coverage.report]
 show_missing = true

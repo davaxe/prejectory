@@ -1,3 +1,8 @@
+# ty: ignore[invalid-assignment, invalid-return-type, invalid-argument-type]
+# Work around lost constrained DataFrameT relationships in ty.
+# https://github.com/astral-sh/ty/issues/688
+# https://github.com/astral-sh/ty/issues/3605
+
 """Sliding-window transforms for turning trajectories into scene windows."""
 
 from __future__ import annotations

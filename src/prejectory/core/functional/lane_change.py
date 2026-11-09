@@ -1,3 +1,7 @@
+# ty: ignore[invalid-return-type]
+# Work around lost constrained DataFrameT relationships in ty.
+# https://github.com/astral-sh/ty/issues/688
+
 """Highway-specific transforms used for lane-change sampling pipelines."""
 
 from __future__ import annotations

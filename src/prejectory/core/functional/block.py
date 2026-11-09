@@ -1,3 +1,7 @@
+# ty: ignore[invalid-assignment, invalid-return-type]
+# Work around lost constrained DataFrameT relationships in ty.
+# https://github.com/astral-sh/ty/issues/688
+
 """Block-oriented transforms used for temporal split assignment."""
 
 from __future__ import annotations

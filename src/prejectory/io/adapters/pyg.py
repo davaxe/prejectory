@@ -74,7 +74,6 @@ class HeteroSceneDataset(PyGDataset, Dataset[HeteroData], Generic[ReaderT]):
 class IterableHeteroSceneDataset(IterableDataset[HeteroData], Generic[IterableReaderT]):
     """Iterable PyG dataset view over full-horizon Prejectory scene records."""
 
-    @override
     def __init__(
         self,
         reader: IterableReaderT,

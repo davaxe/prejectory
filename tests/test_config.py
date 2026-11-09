@@ -3,7 +3,7 @@
 # pyright: standard
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 import polars as pl
 import pytest
@@ -27,6 +27,14 @@ from tests.support import inherited_optional_blocks_descriptor
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from prejectory.config.models import AssignStrategy
+
+
+class AssignmentOverrideInputs(TypedDict, total=False):
+    assign_strategy: AssignStrategy
+    ratio: tuple[float, float, float]
+    gap: int
 
 
 def _write(path: Path, body: str) -> Path:
@@ -330,11 +338,11 @@ def test_runtime_override_requires_native_read_for_splits() -> None:
     ids=["strategy-required", "ratio-strategy", "gap-strategy", "segments-required"],
 )
 def test_runtime_override_rejects_bad_assignment_inputs(
-    kwargs: dict[str, object],
+    kwargs: AssignmentOverrideInputs,
     match: str,
 ) -> None:
     with pytest.raises(ConfigurationError, match=match):
-        _ = config_overrides(**kwargs)  # pyright: ignore[reportArgumentType]
+        _ = config_overrides(**kwargs)
 
 
 def test_resolve_disables_inherited_optional_blocks(tmp_path: Path) -> None:
