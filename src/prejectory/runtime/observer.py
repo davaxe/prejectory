@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import threading
-from typing import TYPE_CHECKING, Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from prejectory.runtime.state import Progress
-
-T = TypeVar("T")
 
 
 class ProgressSource(Protocol):
@@ -21,7 +19,7 @@ class ProgressSource(Protocol):
         ...
 
 
-def observe_execution(
+def observe_execution[T](
     source: ProgressSource,
     run: Callable[[], T],
     callback: Callable[[Progress], None] | None,

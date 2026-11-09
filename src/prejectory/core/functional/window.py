@@ -16,7 +16,6 @@ from prejectory.core.functional.basic import normalize_group_by
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from prejectory.core.typing import DataFrameT
 
 WindowPolicy = Literal["strict", "anchored", "partial"]
 
@@ -27,7 +26,7 @@ _WINDOW_ROW_ORDER_COLUMN = "_prejectory_window_row_order"
 _WINDOW_FRAMES_COLUMN = "_prejectory_window_frames"
 
 
-def sliding_window(
+def sliding_window[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     window_size: int,
     step_size: int,
@@ -81,7 +80,7 @@ def sliding_window(
     return _explode_windows(windows, sliding_col, group_keys, offset_sliding_col=offset_sliding_col)
 
 
-def _create_windows(
+def _create_windows[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     window_size: int,
     step_size: int,
@@ -117,7 +116,7 @@ def _create_windows(
     return expanded.join(window_index, on=window_columns, how="inner")
 
 
-def _create_window_index(
+def _create_window_index[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     window_size: int,
     step_size: int,
@@ -165,7 +164,7 @@ def _create_window_index(
     )
 
 
-def _explode_windows(
+def _explode_windows[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     windows: DataFrameT,
     sliding_col: str,
     group_keys: list[str],

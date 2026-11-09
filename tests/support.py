@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from dataclasses import fields, replace
 from pathlib import Path
-from typing import TYPE_CHECKING, NotRequired
+from typing import TYPE_CHECKING, NotRequired, override
 
 import numpy as np
 import polars as pl
 from pydantic import Field
-from typing_extensions import TypedDict, override
+from typing_extensions import TypedDict
 
 from prejectory.config.models import (
     DatasetConfig,

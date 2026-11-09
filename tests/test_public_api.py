@@ -8,11 +8,10 @@ import sys
 import threading
 from dataclasses import replace
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 import numpy as np
 import pytest
-from typing_extensions import override
 
 from prejectory import ExecutionRequest, open_dataset, plan, run
 from prejectory.config import (

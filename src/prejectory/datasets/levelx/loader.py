@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import polars as pl
-from typing_extensions import override
 
 from prejectory.core.categories import AgentCategory
 from prejectory.core.scene import CANONICAL, POSITIONS_VELOCITY_ACCELERATION

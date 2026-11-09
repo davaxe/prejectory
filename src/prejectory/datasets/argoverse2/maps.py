@@ -6,9 +6,7 @@ from dataclasses import dataclass, field
 from enum import IntEnum, auto
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, Any, Literal, override
 
 from prejectory.core.categories import EdgeType
 from prejectory.processing.maps import (

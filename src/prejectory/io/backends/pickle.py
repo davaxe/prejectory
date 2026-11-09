@@ -9,10 +9,9 @@ when inspectability matters more than shard-based streaming.
 from __future__ import annotations
 
 import pickle  # ruff: ignore[suspicious-pickle-import]
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import numpy as np
-from typing_extensions import override
 
 from prejectory.core.scene import get_trajectory_schema
 from prejectory.io.base import DatasetWriter, split_directory_name

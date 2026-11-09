@@ -6,9 +6,7 @@ import json
 from bisect import bisect_right
 from itertools import accumulate
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, override
 
 from prejectory.core.categories import DatasetSplit
 from prejectory.core.errors import ConfigurationError, UnsupportedStorageBackendError

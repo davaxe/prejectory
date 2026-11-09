@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import ClassVar
-
-from typing_extensions import override
+from typing import ClassVar, override
 
 from prejectory.core.categories import DatasetSplit
 from prejectory.datasets.shared.nuscenes_style_loader import (

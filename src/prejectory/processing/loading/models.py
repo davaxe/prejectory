@@ -27,8 +27,9 @@ class LoadedSourceFrame:
     ego_agent_id: int | None = None
 
 
+# PEP 696 defaults require Python 3.13 in the new generic syntax.
 @dataclass(slots=True, frozen=True)
-class DatasetSource(Generic[SourceT]):
+class DatasetSource(Generic[SourceT]):  # ruff: ignore[non-pep695-generic-class]
     """Lightweight unit of raw input that yields one or more scenes."""
 
     identifier: SourceId

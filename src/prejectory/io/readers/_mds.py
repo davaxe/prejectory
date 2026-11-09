@@ -5,13 +5,12 @@ from __future__ import annotations
 from functools import partial
 from pathlib import Path
 from struct import unpack_from
-from typing import TYPE_CHECKING, Any, cast, final
+from typing import TYPE_CHECKING, Any, cast, final, override
 
 import numpy as np
 from streaming import StreamingDataset
 from streaming.base.format.mds.encodings import NDArray, mds_decode
 from streaming.base.format.mds.reader import MDSReader as MosaicShardReader
-from typing_extensions import override
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator

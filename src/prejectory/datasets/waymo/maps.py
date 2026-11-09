@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, override
 
 from prejectory.core.categories import EdgeType
 from prejectory.datasets.waymo.protos import lean_map_pb2

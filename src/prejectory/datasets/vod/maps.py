@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, Self, override
 
 from prejectory.core.categories import EdgeType
 from prejectory.datasets.nuscenes.maps import NuScenesMap, NuScenesMapBuilder

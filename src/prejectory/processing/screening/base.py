@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Annotated, ClassVar, Literal
+from typing import TYPE_CHECKING, Annotated, ClassVar, Literal, override
 
 import polars as pl
 from pydantic import (
@@ -16,7 +16,6 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
-from typing_extensions import override
 
 from prejectory.core.categories import AgentCategory, AgentCategoryInput, coerce_agent_categories
 

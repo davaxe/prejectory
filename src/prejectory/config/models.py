@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-from typing import TYPE_CHECKING, Annotated, Any, Literal, TypeVar
+from typing import Annotated, Any, Literal, override
 
 import numpy as np
 from pydantic import BeforeValidator, Field, field_validator, model_validator
-from typing_extensions import override
 
 from prejectory.config.base import (
     Clear,
@@ -28,10 +27,6 @@ from prejectory.core.scene.schema import TrajectorySchemaDefinition
 from prejectory.processing.screening.agent import AgentCheckRule  # ruff: ignore[typing-only-first-party-import]
 from prejectory.processing.screening.cleanup import CleanupRule  # ruff: ignore[typing-only-first-party-import]
 from prejectory.processing.screening.scene import SceneCheckRule  # ruff: ignore[typing-only-first-party-import]
-
-if TYPE_CHECKING:
-    from prejectory.core.typing import T
-
 
 EdgeTypes = Annotated[
     frozenset[EdgeType],
@@ -590,7 +585,7 @@ class ScenesPatch(ConfigPatch[ScenesConfig]):
         )
 
 
-def _resolve_required(name: str, value: T | None, fallback: T | None) -> T:
+def _resolve_required[T](name: str, value: T | None, fallback: T | None) -> T:
     result = value if value is not None else fallback
     if result is None:
         msg = f"Missing required field: {name}"
@@ -598,10 +593,7 @@ def _resolve_required(name: str, value: T | None, fallback: T | None) -> T:
     return result
 
 
-ConfigT = TypeVar("ConfigT", bound=ConfigBase)
-
-
-def _apply_optional_block(
+def _apply_optional_block[ConfigT: ConfigBase](
     patch: Clearable[ConfigPatch[ConfigT]],
     target: ConfigT | None,
 ) -> ConfigT | None:

@@ -14,10 +14,8 @@ import polars as pl
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from prejectory.core.typing import DataFrameT
 
-
-def cumulative_blocks(
+def cumulative_blocks[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     weights: Sequence[float],
     *,
@@ -143,7 +141,7 @@ def cumulative_blocks(
     return data
 
 
-def shuffled_blocks(
+def shuffled_blocks[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     weights: Sequence[float],
     n_segments: int,
@@ -215,7 +213,7 @@ def shuffled_blocks(
     )
 
 
-def _assign_weighted_groups(
+def _assign_weighted_groups[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     group_column: str,
     weights: Sequence[float],

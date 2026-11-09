@@ -1,8 +1,7 @@
 """Map-graph builder for the INTERACTION dataset."""
 
 import xml.etree.ElementTree as ET  # ruff: ignore[suspicious-xml-etree-import]
-
-from typing_extensions import override
+from typing import override
 
 from prejectory.datasets.shared.osm_builder import OSMMapBuilder
 

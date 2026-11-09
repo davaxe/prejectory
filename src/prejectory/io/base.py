@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Generic, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Generic, Protocol, override, runtime_checkable
 
-from typing_extensions import TypeVar, override
+from typing_extensions import TypeVar
 
 from prejectory.core.categories import DatasetSplit
 from prejectory.io.records import SceneRecord
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from prejectory.core.scene import Scene
 
 
+# Keep the default on Python 3.12; PEP 695 defaults require Python 3.13.
 RecordT = TypeVar("RecordT", default=SceneRecord)
 
 

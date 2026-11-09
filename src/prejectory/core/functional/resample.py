@@ -25,7 +25,6 @@ from prejectory.core.functional.basic import normalize_group_by
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from prejectory.core.typing import DataFrameT
 
 SEGMENT_COLUMN: Final = "_resample_segment"
 
@@ -151,7 +150,7 @@ class ResamplePlan:
         return (self.frame_column, *self.coordinates)
 
 
-def resample(
+def resample[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     spec: ResampleSpec | None = None,
     *,
@@ -246,7 +245,7 @@ def _resolve_request(
     )
 
 
-def _segment_data(
+def _segment_data[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     *,
     frame_column: str,
@@ -262,7 +261,9 @@ def _segment_data(
     return data.with_columns(expr.alias(SEGMENT_COLUMN))
 
 
-def _normalize_frame_origin(data: DataFrameT, plan: ResamplePlan) -> DataFrameT:
+def _normalize_frame_origin[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
+    data: DataFrameT, plan: ResamplePlan
+) -> DataFrameT:
     """Normalize frame indices relative to the configured temporal origin."""
     origin = pl.col(plan.frame_column).min()
     if plan.time_origin_by:
@@ -281,7 +282,9 @@ def _not_packed_columns(plan: ResamplePlan) -> pl.Expr:
     return pl.all().exclude(excluded)
 
 
-def _linear_resample(data: DataFrameT, spec: ResampleSpec, plan: ResamplePlan) -> DataFrameT:
+def _linear_resample[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
+    data: DataFrameT, spec: ResampleSpec, plan: ResamplePlan
+) -> DataFrameT:
     """Resample trajectory data using linear interpolation and carry-forward values."""
     if spec.no_resampling:
         return data
@@ -301,13 +304,17 @@ def _linear_resample(data: DataFrameT, spec: ResampleSpec, plan: ResamplePlan) -
     return data.drop(SEGMENT_COLUMN, strict=False)
 
 
-def _downsample_dataframe(data: DataFrameT, *, factor: int, frame_column: str) -> DataFrameT:
+def _downsample_dataframe[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
+    data: DataFrameT, *, factor: int, frame_column: str
+) -> DataFrameT:
     return data.filter(pl.col(frame_column) % factor == 0).with_columns(
         (pl.col(frame_column) // factor).alias(frame_column),
     )
 
 
-def _upsample_dataframe(data: DataFrameT, *, factor: int, plan: ResamplePlan) -> DataFrameT:
+def _upsample_dataframe[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
+    data: DataFrameT, *, factor: int, plan: ResamplePlan
+) -> DataFrameT:
     scaled = data.with_columns((pl.col(plan.frame_column) * factor).alias(plan.frame_column))
     frame_range = pl.int_range(
         pl.col(plan.frame_column).min(),
@@ -340,7 +347,7 @@ def _upsample_dataframe(data: DataFrameT, *, factor: int, plan: ResamplePlan) ->
     )
 
 
-def _spline_resample(
+def _spline_resample[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     spec: ResampleSpec,
     plan: ResamplePlan,

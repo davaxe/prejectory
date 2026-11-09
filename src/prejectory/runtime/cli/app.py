@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Literal, TypeVar
+from typing import TYPE_CHECKING, Annotated, Literal
 
 import typer
 from pydantic import ValidationError
@@ -41,7 +41,6 @@ if TYPE_CHECKING:
 
 
 app: typer.Typer = typer.Typer(help="Trajectory data processing toolkit.", no_args_is_help=True)
-_T = TypeVar("_T")
 
 ReadStrategy = Literal["all", "native"]
 AssignStrategy = Literal["none", "preserve-native", "scene", "source", "time", "shuffled-time"]
@@ -350,7 +349,7 @@ def _print_tables(tables: Iterable[object]) -> None:
         rprint("\n", table) if index == 0 else rprint(table)
 
 
-def _run_cli_action(action: Callable[[], _T]) -> _T:
+def _run_cli_action[T](action: Callable[[], T]) -> T:
     try:
         return action()
     except CliError:

@@ -3,34 +3,23 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping, MutableMapping
-from typing import (
-    TYPE_CHECKING,
-    Annotated,
-    Any,
-    ClassVar,
-    Generic,
-    Literal,
-    TypeAlias,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Literal, cast, override
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
-from typing_extensions import TypeAliasType, override
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-ResampleMethod: TypeAlias = Literal["linear", "cubic", "pchip"]
+type ResampleMethod = Literal["linear", "cubic", "pchip"]
 
-PatchDumpValue: TypeAlias = (
+type PatchDumpValue = (
     bool
     | int
     | float
     | str
-    | tuple["PatchDumpValue", ...]
-    | list["PatchDumpValue"]
-    | dict[object, "PatchDumpValue"]
+    | tuple[PatchDumpValue, ...]
+    | list[PatchDumpValue]
+    | dict[object, PatchDumpValue]
     | None
 )
 
@@ -57,10 +46,7 @@ class Clear(ConfigBase):
     op: Literal["clear"] = Field(default="clear", init=False)
 
 
-ResolvedConfigT = TypeVar("ResolvedConfigT", bound=ConfigBase)
-
-
-class ConfigPatch(ConfigBase, Generic[ResolvedConfigT]):
+class ConfigPatch[ResolvedConfigT: ConfigBase](ConfigBase):
     """Base class for patch models applied to resolved config models.
 
     Patch semantics are based on fields explicitly supplied to the patch model,
@@ -142,10 +128,7 @@ def deep_merge(
     return base
 
 
-TargetT = TypeVar("TargetT", bound=ConfigBase)
-
-
-def apply_optional(
+def apply_optional[TargetT: ConfigBase](
     patch: ConfigPatch[TargetT] | Clear | None,
     target: TargetT | None,
 ) -> TargetT | None:
@@ -157,12 +140,10 @@ def apply_optional(
     return patch.merge_into(target)
 
 
-ValueT = TypeVar("ValueT")
-
 _MAPPING_PATCH_RESERVED_KEYS = frozenset({"mode", "remove", "values"})
 
 
-class MappingPatch(ConfigBase, Generic[ValueT]):
+class MappingPatch[ValueT](ConfigBase):
     """Patch operation for named mapping fields.
 
     `replace` discards the inherited mapping before applying values.
@@ -223,10 +204,4 @@ def _clear_shorthand(value: object) -> object:
     return value
 
 
-T = TypeVar("T")
-
-Clearable = TypeAliasType(
-    "Clearable",
-    Annotated[T | Clear | None, BeforeValidator(_clear_shorthand)],
-    type_params=(T,),
-)
+type Clearable[T] = Annotated[T | Clear | None, BeforeValidator(_clear_shorthand)]

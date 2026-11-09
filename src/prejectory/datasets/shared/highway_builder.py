@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, override
 
 import numpy as np
 import polars as pl
 from scipy.interpolate import UnivariateSpline
-from typing_extensions import override
 
 from prejectory.core.categories import EdgeType
 from prejectory.processing.maps import FeatureMapBuilder, PathFeature, Point

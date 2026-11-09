@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, override
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import override
 
 from prejectory.core.errors import ConfigurationError
 from prejectory.core.optional import raise_missing_optional_dependency
@@ -71,8 +70,8 @@ _SCENE_INDEX_COLUMNS = (
 _MAX_BUFFERED_SCENES = 256
 _MAX_BUFFERED_BYTES = 64 * 1024 * 1024
 
-ZarrArray: TypeAlias = zarr.Array[ArrayV2Metadata] | zarr.Array[ArrayV3Metadata]
-Compressors: TypeAlias = tuple[ZstdCodec, ...] | None
+type ZarrArray = zarr.Array[ArrayV2Metadata] | zarr.Array[ArrayV3Metadata]
+type Compressors = tuple[ZstdCodec, ...] | None
 
 
 class ZarrDatasetWriter(DatasetWriter):

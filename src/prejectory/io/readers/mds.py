@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast, overload
+from typing import TYPE_CHECKING, Any, Unpack, cast, overload, override
 
-from typing_extensions import TypedDict, Unpack, override
+from typing_extensions import TypedDict
 
 from prejectory.core.optional import raise_missing_optional_dependency
 from prejectory.io.base import DatasetReader, IterableDatasetReader, split_directory_name

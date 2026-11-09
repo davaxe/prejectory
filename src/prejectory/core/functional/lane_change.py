@@ -15,10 +15,8 @@ from prejectory.core.functional.basic import normalize_group_by
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from prejectory.core.typing import DataFrameT
 
-
-def valid_lane_change(
+def valid_lane_change[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     persist: int,
     margin_before: int = 0,

@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING
 
 from prejectory.core.errors import MissingPredictionBoundsError
 from prejectory.core.optional import raise_missing_optional_dependency
 
 try:
+    from typing import override
+
     import torch
     from torch.utils.data import Dataset, IterableDataset
-    from typing_extensions import override
 except ModuleNotFoundError as error:
     raise_missing_optional_dependency(
         error,
@@ -25,10 +26,6 @@ from prejectory.io.records import PredictionBounds, SceneRecord
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
-
-ReaderT = TypeVar("ReaderT", bound=DatasetReader[SceneRecord])
-IterableReaderT = TypeVar("IterableReaderT", bound=IterableDatasetReader[SceneRecord])
 
 
 @dataclass(slots=True)
@@ -122,7 +119,7 @@ class TorchForecastRecord:
     ego_agent_id: int | None
 
 
-class TorchSceneDataset(Dataset[TorchSceneRecord], Generic[ReaderT]):
+class TorchSceneDataset[ReaderT: DatasetReader[SceneRecord]](Dataset[TorchSceneRecord]):
     """Map-style Torch dataset over any `DatasetReader[SceneRecord]`."""
 
     def __init__(self, reader: ReaderT, *, copy: bool = True) -> None:
@@ -140,7 +137,9 @@ class TorchSceneDataset(Dataset[TorchSceneRecord], Generic[ReaderT]):
         return to_torch_scene_record(self.reader[index], copy=self._copy)
 
 
-class IterableTorchSceneDataset(IterableDataset[TorchSceneRecord], Generic[IterableReaderT]):
+class IterableTorchSceneDataset[IterableReaderT: IterableDatasetReader[SceneRecord]](
+    IterableDataset[TorchSceneRecord]
+):
     """Iterable Torch dataset wrapper over any `DatasetReader[SceneRecord]`."""
 
     def __init__(self, reader: IterableReaderT, *, copy: bool = True) -> None:
@@ -159,7 +158,7 @@ class IterableTorchSceneDataset(IterableDataset[TorchSceneRecord], Generic[Itera
         return len(self.reader)
 
 
-class TorchForecastDataset(Dataset[TorchForecastRecord], Generic[ReaderT]):
+class TorchForecastDataset[ReaderT: DatasetReader[SceneRecord]](Dataset[TorchForecastRecord]):
     """Map-style Torch forecast view over full-horizon scene records."""
 
     def __init__(
@@ -182,9 +181,8 @@ class TorchForecastDataset(Dataset[TorchForecastRecord], Generic[ReaderT]):
         return self.dataset[index].forecast(self.bounds)
 
 
-class IterableTorchForecastDataset(
+class IterableTorchForecastDataset[IterableReaderT: IterableDatasetReader[SceneRecord]](
     IterableDataset[TorchForecastRecord],
-    Generic[IterableReaderT],
 ):
     """Iterable Torch forecast view over full-horizon scene records."""
 

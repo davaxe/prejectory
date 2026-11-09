@@ -8,11 +8,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import IntEnum, auto
 from math import ceil
-from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol, override
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import override
 
 from prejectory.config.models import (
     BoundingBoxExtraction,
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
 
-Point: TypeAlias = tuple[float, float]
+type Point = tuple[float, float]
 """A 2-D point as `(x, y)`."""
 
 
@@ -55,8 +54,8 @@ class PathFeature:
     interpolation_distance: float | None = None
 
 
-MapFeature: TypeAlias = PointFeature | PathFeature
-MapExtractor: TypeAlias = Callable[[Scene, MapGraph], MapGraph]
+type MapFeature = PointFeature | PathFeature
+type MapExtractor = Callable[[Scene, MapGraph], MapGraph]
 
 
 @dataclass(slots=True, frozen=True)

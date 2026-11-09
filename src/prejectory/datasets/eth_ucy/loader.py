@@ -5,10 +5,9 @@ from __future__ import annotations
 from functools import cached_property
 from math import isclose
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, override
 
 import polars as pl
-from typing_extensions import override
 
 from prejectory.config.models import ReadAll, TimeBlockAssign
 from prejectory.core.categories import AgentCategory, DatasetSplit

@@ -25,7 +25,8 @@ if TYPE_CHECKING:
 _LoaderOptionsT = TypeVar("_LoaderOptionsT", bound=LoaderOptionsModel, default=NoLoaderOptions)
 
 
-class SceneLoader(ABC, Generic[SourceT, _LoaderOptionsT]):
+# PEP 696 defaults require Python 3.13 in the new generic syntax.
+class SceneLoader(ABC, Generic[SourceT, _LoaderOptionsT]):  # ruff: ignore[non-pep695-generic-class]
     """Base class for turning raw dataset sources into canonical trajectory frames.
 
     Parameters

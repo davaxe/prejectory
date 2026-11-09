@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import polars as pl
-from typing_extensions import override
 
 from prejectory.core.categories import EdgeType
 from prejectory.processing.maps import (

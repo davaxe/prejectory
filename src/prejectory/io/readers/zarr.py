@@ -5,11 +5,10 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from itertools import accumulate
 from pathlib import Path
-from typing import TypeAlias, cast, final
+from typing import cast, final, override
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import override
 
 from prejectory.core.errors import ManifestCompatibilityError
 from prejectory.core.optional import raise_missing_optional_dependency
@@ -69,7 +68,7 @@ _REQUIRED_ARRAYS = (
     "map/edges",
 )
 
-ZarrArray: TypeAlias = zarr.Array[ArrayV2Metadata] | zarr.Array[ArrayV3Metadata]
+type ZarrArray = zarr.Array[ArrayV2Metadata] | zarr.Array[ArrayV3Metadata]
 
 
 @dataclass(frozen=True, slots=True)

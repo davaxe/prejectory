@@ -7,10 +7,9 @@ fields: `frame`, `id`, `x`, `y`, and `agent_category`.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import polars as pl
-from typing_extensions import override
 
 from prejectory.config import DatasetConfig, ScenesConfig, WindowConfig
 from prejectory.core import AgentCategory

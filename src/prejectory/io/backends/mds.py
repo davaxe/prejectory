@@ -20,10 +20,9 @@ import os
 import sys
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import numpy as np
-from typing_extensions import override
 
 from prejectory.core.errors import ConfigurationError
 from prejectory.core.optional import raise_missing_optional_dependency

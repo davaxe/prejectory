@@ -22,9 +22,7 @@ from dataclasses import dataclass, field
 from enum import IntEnum, auto
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, Self, TypeVar
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, Any, Protocol, Self, override
 
 from prejectory.core.categories import EdgeType
 from prejectory.processing.maps import FeatureMapBuilder, PathFeature, Point
@@ -437,10 +435,7 @@ def _parse_segment_divider(segments: list[dict[str, Any]]) -> list[tuple[str, Se
     ]
 
 
-T = TypeVar("T", bound="_FromDict")
-
-
-def _many_from_dict(cls: type[T], data: Iterable[dict[str, Any]]) -> dict[str, T]:
+def _many_from_dict[T: "_FromDict"](cls: type[T], data: Iterable[dict[str, Any]]) -> dict[str, T]:
     """Deserialize a sequence of dictionaries into a dictionary of objects.
 
     If an item cannot be deserialized, it is skipped. If `debug` is True, a

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Final, TypeVar
+from typing import TYPE_CHECKING, Final
 
 import polars as pl
 
@@ -26,13 +26,11 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
     from prejectory.config.models import ScreeningConfig
-    from prejectory.core.typing import DataFrameT
     from prejectory.processing.columns import TrajectoryColumns
     from prejectory.processing.screening.base import CleanupRuleBase, SceneCheckRuleBase
 
 
 RELATIVE_FRAME_COLUMN: Final[str] = "_screening_relative_frame"
-RuleT = TypeVar("RuleT", bound=Rule)
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,7 +133,7 @@ class ScreeningRuleSet:
         )
 
 
-def _named_rules(entries: dict[str, RuleT]) -> tuple[RuleT, ...]:
+def _named_rules[RuleT: Rule](entries: dict[str, RuleT]) -> tuple[RuleT, ...]:
     return tuple(
         rule.model_copy(update={"rule_id": name, "enabled": True}) for name, rule in entries.items()
     )
@@ -306,7 +304,9 @@ def _build_context(
     )
 
 
-def _temporary_column_name(data: DataFrameT, base_name: str) -> str:
+def _temporary_column_name[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
+    data: DataFrameT, base_name: str
+) -> str:
     schema_names = (
         data.collect_schema().names() if isinstance(data, pl.LazyFrame) else data.schema.names()
     )

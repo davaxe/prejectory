@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal, override
 
 import polars as pl
 from pydantic import Field, model_validator
-from typing_extensions import override
 
 from prejectory.processing.screening.base import (
     AgentCategorySelector,

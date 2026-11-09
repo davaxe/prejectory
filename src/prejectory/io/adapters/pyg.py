@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from copy import copy as shallow_copy
-from typing import TYPE_CHECKING, Generic
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, override
 
 from prejectory.core.optional import raise_missing_optional_dependency
 from prejectory.io.adapters.torch import IterableTorchForecastDataset, IterableTorchSceneDataset
+from prejectory.io.base import DatasetReader, IterableDatasetReader
+from prejectory.io.records import SceneRecord
 
 try:
     from torch.utils.data import Dataset, IterableDataset
@@ -21,8 +21,6 @@ try:
     from torch_geometric.data import Dataset as PyGDataset
 
     from prejectory.io.adapters.torch import (
-        IterableReaderT,
-        ReaderT,
         TorchForecastDataset,
         TorchForecastRecord,
         TorchSceneDataset,
@@ -42,7 +40,7 @@ if TYPE_CHECKING:
 HeteroDataTransform = Callable[[HeteroData], HeteroData]
 
 
-class HeteroSceneDataset(PyGDataset, Dataset[HeteroData], Generic[ReaderT]):
+class HeteroSceneDataset[ReaderT: DatasetReader[SceneRecord]](PyGDataset, Dataset[HeteroData]):
     """PyG dataset view over full-horizon Prejectory scene records.
 
     Each record is a `HeteroData` object with `agent` and `map` node stores and
@@ -71,7 +69,9 @@ class HeteroSceneDataset(PyGDataset, Dataset[HeteroData], Generic[ReaderT]):
         return len(self.dataset)
 
 
-class IterableHeteroSceneDataset(IterableDataset[HeteroData], Generic[IterableReaderT]):
+class IterableHeteroSceneDataset[IterableReaderT: IterableDatasetReader[SceneRecord]](
+    IterableDataset[HeteroData]
+):
     """Iterable PyG dataset view over full-horizon Prejectory scene records."""
 
     def __init__(
@@ -102,7 +102,7 @@ class IterableHeteroSceneDataset(IterableDataset[HeteroData], Generic[IterableRe
         return len(self.dataset)
 
 
-class HeteroForecastDataset(PyGDataset, Dataset[HeteroData], Generic[ReaderT]):
+class HeteroForecastDataset[ReaderT: DatasetReader[SceneRecord]](PyGDataset, Dataset[HeteroData]):
     """PyG dataset view with explicit history and future agent tensors."""
 
     def __init__(
@@ -129,7 +129,9 @@ class HeteroForecastDataset(PyGDataset, Dataset[HeteroData], Generic[ReaderT]):
         return len(self.dataset)
 
 
-class IterableHeteroForecastDataset(IterableDataset[HeteroData], Generic[IterableReaderT]):
+class IterableHeteroForecastDataset[IterableReaderT: IterableDatasetReader[SceneRecord]](
+    IterableDataset[HeteroData]
+):
     """Iterable PyG forecast view over full-horizon scene records."""
 
     def __init__(

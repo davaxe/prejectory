@@ -3,11 +3,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET  # ruff: ignore[suspicious-xml-etree-import]
 from dataclasses import dataclass, field
 from enum import IntEnum, auto
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import override
 
 from prejectory.core.categories import EdgeType
 from prejectory.processing.maps import FeatureMapBuilder, PathFeature, Point

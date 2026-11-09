@@ -3,18 +3,16 @@
 from __future__ import annotations
 
 import hashlib
-from typing import TYPE_CHECKING, Generic
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
-
-from prejectory.core.typing import T_co
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class StatelessWeightedAssigner(Generic[T_co]):
+class StatelessWeightedAssigner[T]:
     """Stateless group assigner based on hashing.
 
     Given a set of groups and optional weights, this class provides a
@@ -32,7 +30,7 @@ class StatelessWeightedAssigner(Generic[T_co]):
 
     Parameters
     ----------
-    groups : Sequence[T_co]
+    groups : Sequence[T]
         A sequence of unique groups to assign the stream into.
     weights : Sequence[float], optional
         A sequence of weights corresponding to each group. If `None` groups are
@@ -45,20 +43,20 @@ class StatelessWeightedAssigner(Generic[T_co]):
 
     def __init__(
         self,
-        groups: Sequence[T_co],
+        groups: Sequence[T],
         weights: Sequence[float] | None = None,
         seed: int | None = None,
     ) -> None:
         self._seed: int = (
             seed if seed is not None else int(np.random.default_rng().integers(0, 2**31 - 1))
         )
-        self._groups: list[T_co]
+        self._groups: list[T]
         self._weights: npt.NDArray[np.float64]
         self._groups, self._weights = _prepare_groups_and_weights(groups, weights)
         self._cumulative_weights: npt.NDArray[np.float64] = np.cumsum(self._weights)
         self._cumulative_weights[-1] = 1.0
 
-    def assign(self, *values: int | str) -> T_co:
+    def assign(self, *values: int | str) -> T:
         """Assign a group based on the provided values.
 
         Given the same seed and the same set of values, this method will always
@@ -88,10 +86,10 @@ def _hash_to_unit_interval(seed: int, *values: int | str) -> float:
     return x / 2**64
 
 
-def _prepare_groups_and_weights(
-    groups: Sequence[T_co],
+def _prepare_groups_and_weights[T](
+    groups: Sequence[T],
     weights: Sequence[float] | None,
-) -> tuple[list[T_co], npt.NDArray[np.float64]]:
+) -> tuple[list[T], npt.NDArray[np.float64]]:
     """Validate and normalize assigner groups and weights."""
     normalized_groups = list(dict.fromkeys(groups))
     if len(groups) != len(normalized_groups):

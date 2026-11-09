@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Collection, Iterable
 from enum import IntEnum, StrEnum
-from typing import Final, TypeVar
+from typing import Final
 
 
 class EdgeType(IntEnum):
@@ -159,23 +159,24 @@ EdgeTypeLike = int | str | EdgeType
 EdgeTypeInput = EdgeTypeLike | Iterable[EdgeTypeLike]
 """Input type for specifying one or more edge types."""
 
-_AgentCollectionT = TypeVar("_AgentCollectionT", bound=Collection[AgentCategory])
-_EdgeCollectionT = TypeVar("_EdgeCollectionT", bound=Collection[EdgeType])
 
-
-def coerce_agent_categories(
+def coerce_agent_categories[
+    AgentCollectionT: Collection[AgentCategory],
+](
     value: AgentCategoryInput,
-    collection: Callable[[Iterable[AgentCategory]], _AgentCollectionT],
-) -> _AgentCollectionT:
+    collection: Callable[[Iterable[AgentCategory]], AgentCollectionT],
+) -> AgentCollectionT:
     """Convert one or many agent-category values into a normalized collection."""
     values = [value] if isinstance(value, (str, int, AgentCategory)) else value
     return collection(AgentCategory.from_value(item) for item in values)
 
 
-def coerce_edge_types(
+def coerce_edge_types[
+    EdgeCollectionT: Collection[EdgeType],
+](
     value: EdgeTypeInput,
-    collection: Callable[[Iterable[EdgeType]], _EdgeCollectionT],
-) -> _EdgeCollectionT:
+    collection: Callable[[Iterable[EdgeType]], EdgeCollectionT],
+) -> EdgeCollectionT:
     """Convert one or many edge-type values into a normalized collection."""
     values = [value] if isinstance(value, (str, int, EdgeType)) else value
     return collection(EdgeType.from_value(item) for item in values)

@@ -6,9 +6,7 @@ import functools
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, Self
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, Any, Protocol, Self, override
 
 from prejectory.core.categories import EdgeType
 from prejectory.processing.maps import (

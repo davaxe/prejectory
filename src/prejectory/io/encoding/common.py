@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -10,7 +10,6 @@ import polars as pl
 from typing_extensions import TypedDict
 
 from prejectory.core.categories import AgentCategory
-from prejectory.core.typing import FloatScalarT
 from prejectory.datasets.registry import dataset_id_for_name
 from prejectory.io.records import ForecastRecord, PredictionBounds, SceneRecord
 
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
     from prejectory.core.typing import FloatDType
 
 
-class MapRecord(TypedDict, Generic[FloatScalarT]):
+class MapRecord[FloatScalarT: (np.float32, np.float64)](TypedDict):
     """Simple NumPy representation of one scene's map payload."""
 
     map_node_positions: npt.NDArray[FloatScalarT]

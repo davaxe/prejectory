@@ -127,11 +127,6 @@ preview = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    # Keep the existing typing syntax; modernizing it is separate from Python support.
-    "deprecated-import",
-    "non-pep695-type-alias",
-    "non-pep695-generic-class",
-    "non-pep695-generic-function",
     "multi-line-summary-second-line",
     "missing-trailing-comma",
     "magic-value-comparison",

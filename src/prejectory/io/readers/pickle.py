@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import pickle  # ruff: ignore[suspicious-pickle-import]
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-from typing_extensions import override
+from typing import TYPE_CHECKING, override
 
 from prejectory.io.base import DatasetReader, split_directory_name
 from prejectory.io.records import SceneRecord

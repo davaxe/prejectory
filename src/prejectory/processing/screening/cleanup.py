@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal, override
 
 import polars as pl
 from pydantic import Field, model_validator
-from typing_extensions import override
 
 from prejectory.core.categories import AgentCategoryInput, coerce_agent_categories
 from prejectory.processing.screening.agent import AgentCheckRule  # ruff: ignore[typing-only-first-party-import]

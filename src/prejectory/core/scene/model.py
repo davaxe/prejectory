@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 import polars as pl
-from typing_extensions import override
 
 from prejectory.core.errors import TrajectorySchemaError
 from prejectory.core.maps import MapGraph

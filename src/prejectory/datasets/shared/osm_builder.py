@@ -2,8 +2,7 @@ import xml.etree.ElementTree as ET  # ruff: ignore[suspicious-xml-etree-import]
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
-
-from typing_extensions import override
+from typing import override
 
 from prejectory.core.categories import EdgeType
 from prejectory.datasets.shared import utils

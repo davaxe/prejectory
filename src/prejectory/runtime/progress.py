@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, override
 
 import rich.progress as rp
 from rich import box
@@ -11,15 +11,12 @@ from rich.console import Group, RenderableType, RichCast
 from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
-from typing_extensions import override
 
 from prejectory.runtime.observer import ProgressSource, observe_execution
 from prejectory.runtime.state import Progress, SplitCounts
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-T = TypeVar("T")
 
 
 class _ExecutorDisplay(RichCast):
@@ -112,7 +109,7 @@ class _ExecutorDisplay(RichCast):
         return self.state.active_workers if self.state.running else 0
 
 
-def execute_with_rich_progress(
+def execute_with_rich_progress[T](
     progress: ProgressSource,
     run: Callable[[], T],
     *,

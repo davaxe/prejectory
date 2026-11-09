@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 from itertools import starmap
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 import polars as pl
 from pydantic import Field
-from typing_extensions import override
 
 from prejectory.core.categories import AgentCategory, DatasetSplit
 from prejectory.core.scene import POSITIONS_ONLY

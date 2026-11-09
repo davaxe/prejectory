@@ -13,10 +13,8 @@ import polars as pl
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from prejectory.core.typing import DataFrameT
 
-
-def yaw_from_velocity(
+def yaw_from_velocity[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     vx_col: str = "vx",
     vy_col: str = "vy",
@@ -31,7 +29,7 @@ def yaw_from_velocity_expr(vx_col: str = "vx", vy_col: str = "vy", yaw_col: str 
     return pl.arctan2(pl.col(vy_col), pl.col(vx_col)).alias(yaw_col)
 
 
-def yaw_from_position(
+def yaw_from_position[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     x_col: str = "x",
     y_col: str = "y",
@@ -55,7 +53,7 @@ def yaw_from_position_expr(x_col: str = "x", y_col: str = "y", yaw_col: str = "y
     return pl.arctan2(y_diff, x_diff).alias(yaw_col)
 
 
-def derivative(
+def derivative[DataFrameT: (pl.DataFrame, pl.LazyFrame)](
     data: DataFrameT,
     *columns: str,
     sample_time: float = 1.0,

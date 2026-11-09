@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -83,7 +83,7 @@ def decode_mds_row(row: Mapping[str, Any]) -> SceneRecord:
         agent_ids=np.asarray(row["agent_ids"], dtype=np.int64),
         agent_types=np.asarray(row["agent_types"], dtype=np.int32),
         screened_agent_mask=np.asarray(row["screened_agent_mask"], dtype=bool),
-        features=np.asarray(row["features"]),
+        features=cast("npt.NDArray[np.float32 | np.float64]", np.asarray(row["features"])),
         valid_mask=np.asarray(row["mask"], dtype=bool),
         map_node_positions=map_node_positions,
         map_edge_indices=map_edge_indices,
